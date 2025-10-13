@@ -23,7 +23,7 @@ namespace Microsoft.Agents.AI.A2A;
 /// Support for tasks will be added later as part of the long-running
 /// executions work.
 /// </remarks>
-internal sealed class A2AAgent : AIAgent
+public sealed class A2AAgent : AIAgent
 {
     private readonly A2AClient _a2aClient;
     private readonly string? _id;
@@ -41,7 +41,7 @@ internal sealed class A2AAgent : AIAgent
     /// <param name="description">The description of the agent.</param>
     /// <param name="displayName">The display name of the agent.</param>
     /// <param name="loggerFactory">Optional logger factory to use for logging.</param>
-    public A2AAgent(A2AClient a2aClient, string? id = null, string? name = null, string? description = null, string? displayName = null, ILoggerFactory? loggerFactory = null)
+    internal A2AAgent(A2AClient a2aClient, string? id = null, string? name = null, string? description = null, string? displayName = null, ILoggerFactory? loggerFactory = null)
     {
         _ = Throw.IfNull(a2aClient);
 
