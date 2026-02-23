@@ -54,7 +54,7 @@ public sealed partial class FileAgentSkillsProvider : AIContextProvider
         When a task aligns with a skill's domain:
         - Use `load_skill` to retrieve the skill's instructions
         - Follow the provided guidance
-        - Use `read_skill_resource` to read any references or other files mentioned by the skill
+        - Use `read_skill_resource` to read any references or other files mentioned by the skill, always using the full path as written (e.g. `references/FAQ.md`, not just `FAQ.md`)
         {executor_instructions}
         Only load what is needed, when it is needed.
         """;
