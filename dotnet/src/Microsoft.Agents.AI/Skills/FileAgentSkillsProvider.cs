@@ -48,21 +48,21 @@ public sealed partial class FileAgentSkillsProvider : AIContextProvider
         Each skill provides specialized instructions, reference documents, and assets for specific tasks.
 
         <available_skills>
-        {0}
+        {skills}
         </available_skills>
 
         When a task aligns with a skill's domain:
-        1. Use `load_skill` to retrieve the skill's instructions
-        2. Follow the provided guidance
-        3. Use `read_skill_resource` to read any references or other files mentioned by the skill
-
+        - Use `load_skill` to retrieve the skill's instructions
+        - Follow the provided guidance
+        - Use `read_skill_resource` to read any references or other files mentioned by the skill
+        {executor_instructions}
         Only load what is needed, when it is needed.
         """;
 
     private readonly Dictionary<string, FileAgentSkill> _skills;
     private readonly ILogger<FileAgentSkillsProvider> _logger;
     private readonly FileAgentSkillLoader _loader;
-    private readonly AITool[] _tools;
+    private readonly IEnumerable<AITool> _tools;
     private readonly string? _skillsInstructionPrompt;
 
     /// <summary>
@@ -91,9 +91,9 @@ public sealed partial class FileAgentSkillsProvider : AIContextProvider
         this._loader = new FileAgentSkillLoader(this._logger);
         this._skills = this._loader.DiscoverAndLoadSkills(skillPaths);
 
-        this._skillsInstructionPrompt = BuildSkillsInstructionPrompt(options, this._skills);
+        this._skillsInstructionPrompt = BuildSkillsInstructionPrompt(options, this._skills, options?.Executor);
 
-        this._tools =
+        AITool[] baseTools =
         [
             AIFunctionFactory.Create(
                 this.LoadSkill,
@@ -104,6 +104,10 @@ public sealed partial class FileAgentSkillsProvider : AIContextProvider
                 name: "read_skill_resource",
                 description: "Reads a file associated with a skill, such as references or assets."),
         ];
+
+        this._tools = options?.Executor?.GetTools() is { Count: > 0 } executorTools
+            ? baseTools.Concat(executorTools)
+            : baseTools;
     }
 
     /// <inheritdoc />
@@ -117,7 +121,7 @@ public sealed partial class FileAgentSkillsProvider : AIContextProvider
         return new ValueTask<AIContext>(new AIContext
         {
             Instructions = this._skillsInstructionPrompt,
-            Tools = this._tools
+            Tools = this._tools,
         });
     }
 
@@ -166,24 +170,9 @@ public sealed partial class FileAgentSkillsProvider : AIContextProvider
         }
     }
 
-    private static string? BuildSkillsInstructionPrompt(FileAgentSkillsProviderOptions? options, Dictionary<string, FileAgentSkill> skills)
+    private static string? BuildSkillsInstructionPrompt(FileAgentSkillsProviderOptions? options, Dictionary<string, FileAgentSkill> skills, SkillScriptExecutor? executor)
     {
-        string promptTemplate = DefaultSkillsInstructionPrompt;
-
-        if (options?.SkillsInstructionPrompt is { } optionsInstructions)
-        {
-            try
-            {
-                promptTemplate = string.Format(optionsInstructions, string.Empty);
-            }
-            catch (FormatException ex)
-            {
-                throw new ArgumentException(
-                    "The provided SkillsInstructionPrompt is not a valid format string. It must contain a '{0}' placeholder and escape any literal '{' or '}' by doubling them ('{{' or '}}').",
-                    nameof(options),
-                    ex);
-            }
-        }
+        string promptTemplate = options?.SkillsInstructionPrompt ?? DefaultSkillsInstructionPrompt;
 
         if (skills.Count == 0)
         {
@@ -202,7 +191,9 @@ public sealed partial class FileAgentSkillsProvider : AIContextProvider
             sb.AppendLine("  </skill>");
         }
 
-        return string.Format(promptTemplate, sb.ToString().TrimEnd());
+        return promptTemplate
+            .Replace("{skills}", sb.ToString().TrimEnd())
+            .Replace("{executor_instructions}", executor?.GetInstructions() ?? "\n");
     }
 
     [LoggerMessage(LogLevel.Information, "Loading skill: {SkillName}")]

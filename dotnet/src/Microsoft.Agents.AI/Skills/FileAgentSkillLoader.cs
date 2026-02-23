@@ -33,13 +33,16 @@ internal sealed partial class FileAgentSkillLoader
     // Example: "---\nname: foo\n---\nBody" → Group 1: "name: foo\n"
     private static readonly Regex s_frontmatterRegex = new(@"\A\uFEFF?^---\s*$(.+?)^---\s*$", RegexOptions.Multiline | RegexOptions.Singleline | RegexOptions.Compiled, TimeSpan.FromSeconds(5));
 
-    // Matches markdown links to local resource files. Group 1 = relative file path.
+    // Matches resource file references in skill markdown. Group 1 = relative file path.
+    // Supports two forms:
+    //   1. Markdown links: [text](path/file.ext)
+    //   2. Backtick-quoted paths: `path/file.ext`
     // Supports optional ./ or ../ prefixes; excludes URLs (no ":" in the path character class).
     // Intentionally conservative: only matches paths with word characters, hyphens, dots,
     // and forward slashes. Paths with spaces or special characters are not supported.
-    // Examples: [doc](refs/FAQ.md) → "refs/FAQ.md", [s](./s.json) → "./s.json",
+    // Examples: [doc](refs/FAQ.md) → "refs/FAQ.md", `./scripts/run.py` → "./scripts/run.py",
     //           [p](../shared/doc.txt) → "../shared/doc.txt"
-    private static readonly Regex s_resourceLinkRegex = new(@"\[.*?\]\((\.?\.?/?[\w][\w\-./]*\.\w+)\)", RegexOptions.Compiled, TimeSpan.FromSeconds(5));
+    private static readonly Regex s_resourceLinkRegex = new(@"(?:\[.*?\]\(|`)(\.?\.?/?[\w][\w\-./]*\.\w+)(?:\)|`)", RegexOptions.Compiled, TimeSpan.FromSeconds(5));
 
     // Matches YAML "key: value" lines. Group 1 = key, Group 2 = quoted value, Group 3 = unquoted value.
     // Accepts single or double quotes; the lazy quantifier trims trailing whitespace on unquoted values.

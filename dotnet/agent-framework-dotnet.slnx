@@ -99,6 +99,7 @@
   <Folder Name="/Samples/GettingStarted/AgentSkills/">
     <File Path="samples/GettingStarted/AgentSkills/README.md" />
     <Project Path="samples/GettingStarted/AgentSkills/Agent_Step01_BasicSkills/Agent_Step01_BasicSkills.csproj" />
+    <Project Path="samples/GettingStarted/AgentSkills/Agent_Step02_ScriptExecutionWithCodeInterpreter/Agent_Step02_ScriptExecutionWithCodeInterpreter.csproj" />
   </Folder>
   <Folder Name="/Samples/GettingStarted/DeclarativeAgents/">
     <Project Path="samples/GettingStarted/DeclarativeAgents/ChatClient/DeclarativeChatClientAgents.csproj" />
