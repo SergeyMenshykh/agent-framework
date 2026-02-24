@@ -35,21 +35,25 @@ basic_skills/
 ## Running the Sample
 
 ### Prerequisites
-- Python 3.10+
-- Azure OpenAI endpoint with a deployed model
+- An [Azure AI Foundry](https://ai.azure.com/) project with a deployed model (e.g. `gpt-4o-mini`)
 
-### Setup
-1. Set environment variables in a `.env` file (see `python/.env.example`):
-   ```bash
-   AZURE_AI_PROJECT_ENDPOINT="https://your-endpoint.openai.azure.com/"
-   AZURE_OPENAI_RESPONSES_DEPLOYMENT_NAME="gpt-4o-mini"
-   ```
+### Environment Variables
 
-2. Run the sample:
-   ```bash
-   cd python
-   uv run samples/02-agents/skills/basic_skills/basic_file_skills.py
-   ```
+Set the required environment variables in a `.env` file (see `python/.env.example`):
+
+- `AZURE_AI_PROJECT_ENDPOINT`: Your Azure AI Foundry project endpoint
+- `AZURE_OPENAI_RESPONSES_DEPLOYMENT_NAME`: The name of your model deployment (defaults to `gpt-4o-mini`)
+
+### Authentication
+
+This sample uses `AzureCliCredential` for authentication. Run `az login` in your terminal before running the sample.
+
+### Run
+
+```bash
+cd python
+uv run samples/02-agents/skills/basic_skills/basic_file_skills.py
+```
 
 ### Examples
 
