@@ -20,7 +20,7 @@ Policy-based expense filing with spending limits, receipt requirements, and appr
 ## Project Structure
 
 ```
-skills/
+basic_skills/
 ├── basic_file_skills.py
 ├── README.md
 └── skills/
@@ -48,7 +48,7 @@ skills/
 2. Run the sample:
    ```bash
    cd python
-   uv run samples/02-agents/context_providers/skills/basic_file_skills.py
+   uv run samples/02-agents/basic_skills/basic_file_skills.py
    ```
 
 ### Examples
