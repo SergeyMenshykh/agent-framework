@@ -61,4 +61,4 @@ The sample runs two examples:
 ## Learn More
 
 - [Agent Skills Specification](https://agentskills.io/)
-- [Microsoft Agent Framework Documentation](../../../../../docs/)
+- [Microsoft Agent Framework Documentation](../../../../docs/)

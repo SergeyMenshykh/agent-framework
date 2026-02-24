@@ -4,6 +4,7 @@
 
 from __future__ import annotations
 
+import os
 from pathlib import Path
 from unittest.mock import AsyncMock
 
@@ -15,11 +16,27 @@ from agent_framework._skills import (
     _discover_and_load_skills,
     _extract_resource_paths,
     _FileAgentSkill,
+    _has_symlink_in_path,
     _normalize_resource_path,
     _read_skill_resource,
     _SkillFrontmatter,
     _try_parse_skill_document,
 )
+
+
+def _symlinks_supported(tmp: Path) -> bool:
+    """Return True if the current platform/environment supports symlinks."""
+    test_target = tmp / "_symlink_test_target"
+    test_link = tmp / "_symlink_test_link"
+    try:
+        test_target.write_text("test", encoding="utf-8")
+        test_link.symlink_to(test_target)
+        return True
+    except (OSError, NotImplementedError):
+        return False
+    finally:
+        test_link.unlink(missing_ok=True)
+        test_target.unlink(missing_ok=True)
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -570,3 +587,104 @@ class TestFileAgentSkillsProvider:
         prompt = context.instructions[0]
         assert "&lt;tags&gt;" in prompt
         assert "&amp;" in prompt
+
+
+# ---------------------------------------------------------------------------
+# Tests: symlink detection (_has_symlink_in_path and end-to-end guards)
+# ---------------------------------------------------------------------------
+
+
+@pytest.fixture()
+def _requires_symlinks(tmp_path: Path) -> None:
+    """Skip the test if the platform does not support symlinks."""
+    if not _symlinks_supported(tmp_path):
+        pytest.skip("Symlinks not supported on this platform/environment")
+
+
+@pytest.mark.usefixtures("_requires_symlinks")
+class TestSymlinkDetection:
+    """Tests for _has_symlink_in_path and the symlink guards in validation/read."""
+
+    def test_detects_symlinked_file(self, tmp_path: Path) -> None:
+        """A symlink to a file outside the directory should be detected."""
+        skill_dir = tmp_path / "skill"
+        skill_dir.mkdir()
+
+        outside_file = tmp_path / "secret.txt"
+        outside_file.write_text("secret", encoding="utf-8")
+
+        symlink_path = skill_dir / "link.txt"
+        symlink_path.symlink_to(outside_file)
+
+        full_path = str(symlink_path)
+        directory_path = str(skill_dir) + os.sep
+        assert _has_symlink_in_path(full_path, directory_path) is True
+
+    def test_detects_symlinked_directory(self, tmp_path: Path) -> None:
+        """A symlink to a directory outside should be detected for paths through it."""
+        skill_dir = tmp_path / "skill"
+        skill_dir.mkdir()
+
+        outside_dir = tmp_path / "outside"
+        outside_dir.mkdir()
+        (outside_dir / "data.txt").write_text("data", encoding="utf-8")
+
+        symlink_dir = skill_dir / "linked-dir"
+        symlink_dir.symlink_to(outside_dir)
+
+        full_path = str(skill_dir / "linked-dir" / "data.txt")
+        directory_path = str(skill_dir) + os.sep
+        assert _has_symlink_in_path(full_path, directory_path) is True
+
+    def test_returns_false_for_regular_files(self, tmp_path: Path) -> None:
+        """Regular (non-symlinked) files should not be flagged."""
+        skill_dir = tmp_path / "skill"
+        skill_dir.mkdir()
+
+        regular_file = skill_dir / "doc.txt"
+        regular_file.write_text("content", encoding="utf-8")
+
+        full_path = str(regular_file)
+        directory_path = str(skill_dir) + os.sep
+        assert _has_symlink_in_path(full_path, directory_path) is False
+
+    def test_validate_resources_rejects_symlinked_resource(self, tmp_path: Path) -> None:
+        """_discover_and_load_skills should exclude a skill whose resource is a symlink."""
+        skill_dir = tmp_path / "my-skill"
+        skill_dir.mkdir()
+
+        outside_file = tmp_path / "secret.md"
+        outside_file.write_text("secret content", encoding="utf-8")
+
+        # Create SKILL.md referencing a resource
+        (skill_dir / "SKILL.md").write_text(
+            "---\nname: my-skill\ndescription: A test skill.\n---\nSee [doc](refs/leak.md).\n",
+            encoding="utf-8",
+        )
+        refs_dir = skill_dir / "refs"
+        refs_dir.mkdir()
+        (refs_dir / "leak.md").symlink_to(outside_file)
+
+        skills = _discover_and_load_skills([str(tmp_path)])
+        assert "my-skill" not in skills
+
+    def test_read_skill_resource_rejects_symlinked_resource(self, tmp_path: Path) -> None:
+        """_read_skill_resource should raise ValueError for a symlinked resource."""
+        skill_dir = tmp_path / "skill"
+        skill_dir.mkdir()
+
+        outside_file = tmp_path / "secret.md"
+        outside_file.write_text("secret content", encoding="utf-8")
+
+        refs_dir = skill_dir / "refs"
+        refs_dir.mkdir()
+        (refs_dir / "leak.md").symlink_to(outside_file)
+
+        skill = _FileAgentSkill(
+            frontmatter=_SkillFrontmatter("test", "Test skill"),
+            body="See [doc](refs/leak.md).",
+            source_path=str(skill_dir),
+            resource_names=["refs/leak.md"],
+        )
+        with pytest.raises(ValueError, match="symlink"):
+            _read_skill_resource(skill, "refs/leak.md")
