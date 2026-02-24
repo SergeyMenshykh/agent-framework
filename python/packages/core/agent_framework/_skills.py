@@ -165,8 +165,15 @@ def _is_path_within_directory(full_path: str, directory_path: str) -> bool:
 
 
 def _has_symlink_in_path(full_path: str, directory_path: str) -> bool:
-    """Check whether any segment in *full_path* below *directory_path* is a symlink."""
+    """Check whether any segment in *full_path* below *directory_path* is a symlink.
+
+    Precondition: *full_path* must start with *directory_path*.  Callers are
+    expected to verify containment via :func:`_is_path_within_directory` before
+    invoking this function.
+    """
     # Strip the directory_path prefix to get relative segments
+    if not os.path.normcase(full_path).startswith(os.path.normcase(directory_path)):
+        raise ValueError(f"full_path {full_path!r} does not start with directory_path {directory_path!r}")
     rel = full_path[len(directory_path) :]
     segments = [s for s in rel.replace("\\", "/").split("/") if s]
 
@@ -414,13 +421,7 @@ def _build_skills_instruction_prompt(
     template = _DEFAULT_SKILLS_INSTRUCTION_PROMPT
 
     if prompt_template is not None:
-        # Validate that the template contains {0}
-        try:
-            template.format("")  # validate default works
-            prompt_template.format("")  # validate custom works
-        except (KeyError, IndexError):
-            pass
-
+        # Validate that the custom template contains a valid {0} placeholder
         try:
             prompt_template.format("")
             template = prompt_template
