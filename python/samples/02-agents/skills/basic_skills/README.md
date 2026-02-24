@@ -48,7 +48,7 @@ basic_skills/
 2. Run the sample:
    ```bash
    cd python
-   uv run samples/02-agents/basic_skills/basic_file_skills.py
+   uv run samples/02-agents/skills/basic_skills/basic_file_skills.py
    ```
 
 ### Examples
@@ -61,4 +61,4 @@ The sample runs two examples:
 ## Learn More
 
 - [Agent Skills Specification](https://agentskills.io/)
-- [Microsoft Agent Framework Documentation](../../../../docs/)
+- [Microsoft Agent Framework Documentation](../../../../../docs/)
