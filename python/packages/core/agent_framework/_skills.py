@@ -26,7 +26,7 @@ import os
 import re
 from collections.abc import Sequence
 from dataclasses import dataclass, field
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 from typing import TYPE_CHECKING, Any, ClassVar, Final
 from html import escape as xml_escape
 
@@ -127,13 +127,10 @@ class _FileAgentSkill:
 def _normalize_resource_path(path: str) -> str:
     """Normalize a relative resource path.
 
-    Trims a leading ``./`` prefix and replaces backslashes with forward slashes
+    Replaces backslashes with forward slashes and removes leading ``./`` prefixes
     so that ``./refs/doc.md`` and ``refs/doc.md`` are treated as the same resource.
     """
-    path = path.replace("\\", "/")
-    if path.startswith("./"):
-        path = path[2:]
-    return path
+    return PurePosixPath(path.replace("\\", "/")).as_posix()
 
 
 def _extract_resource_paths(content: str) -> list[str]:
@@ -152,14 +149,11 @@ def _extract_resource_paths(content: str) -> list[str]:
 def _is_path_within_directory(full_path: str, directory_path: str) -> bool:
     """Check that *full_path* is under *directory_path*.
 
-    A trailing separator is ensured on *directory_path* so that
-    ``/skill-evil`` is not mistakenly considered inside ``/skill``.
+    Uses :meth:`pathlib.Path.is_relative_to` for cross-platform comparison,
+    which handles case sensitivity correctly per platform.
     """
     try:
-        norm_dir = os.path.normcase(directory_path)
-        if not norm_dir.endswith(os.sep):
-            norm_dir += os.sep
-        return os.path.normcase(full_path).startswith(norm_dir)
+        return Path(full_path).is_relative_to(directory_path)
     except (ValueError, OSError):
         return False
 
@@ -171,16 +165,18 @@ def _has_symlink_in_path(full_path: str, directory_path: str) -> bool:
     expected to verify containment via :func:`_is_path_within_directory` before
     invoking this function.
     """
-    # Strip the directory_path prefix to get relative segments
-    if not os.path.normcase(full_path).startswith(os.path.normcase(directory_path)):
-        raise ValueError(f"full_path {full_path!r} does not start with directory_path {directory_path!r}")
-    rel = full_path[len(directory_path) :]
-    segments = [s for s in rel.replace("\\", "/").split("/") if s]
+    dir_path = Path(directory_path)
+    try:
+        relative = Path(full_path).relative_to(dir_path)
+    except ValueError as exc:
+        raise ValueError(
+            f"full_path {full_path!r} does not start with directory_path {directory_path!r}"
+        ) from exc
 
-    current = directory_path.rstrip(os.sep).rstrip("/")
-    for segment in segments:
-        current = os.path.join(current, segment)
-        if os.path.islink(current):
+    current = dir_path
+    for part in relative.parts:
+        current = current / part
+        if current.is_symlink():
             return True
     return False
 
@@ -247,12 +243,12 @@ def _validate_resources(
     skill_name: str,
 ) -> bool:
     """Validate that all resource paths exist and are safe."""
-    normalized_skill_path = os.path.abspath(skill_dir_path) + os.sep
+    skill_dir = Path(skill_dir_path).absolute()
 
     for resource_name in resource_names:
-        full_path = os.path.normpath(os.path.join(skill_dir_path, resource_name))
+        resource_path = Path(os.path.normpath(skill_dir / resource_name))
 
-        if not _is_path_within_directory(full_path, normalized_skill_path):
+        if not _is_path_within_directory(str(resource_path), str(skill_dir)):
             logger.warning(
                 "Excluding skill '%s': resource '%s' references a path outside the skill directory",
                 skill_name,
@@ -260,7 +256,7 @@ def _validate_resources(
             )
             return False
 
-        if not os.path.isfile(full_path):
+        if not resource_path.is_file():
             logger.warning(
                 "Excluding skill '%s': referenced resource '%s' does not exist",
                 skill_name,
@@ -268,7 +264,7 @@ def _validate_resources(
             )
             return False
 
-        if _has_symlink_in_path(full_path, normalized_skill_path):
+        if _has_symlink_in_path(str(resource_path), str(skill_dir)):
             logger.warning(
                 "Excluding skill '%s': resource '%s' is a symlink that resolves outside the skill directory",
                 skill_name,
@@ -281,15 +277,15 @@ def _validate_resources(
 
 def _parse_skill_file(skill_dir_path: str) -> _FileAgentSkill | None:
     """Parse a SKILL.md file from the given directory."""
-    skill_file_path = os.path.join(skill_dir_path, SKILL_FILE_NAME)
+    skill_file = Path(skill_dir_path) / SKILL_FILE_NAME
 
     try:
-        content = Path(skill_file_path).read_text(encoding="utf-8")
+        content = skill_file.read_text(encoding="utf-8")
     except OSError:
-        logger.error("Failed to read SKILL.md at '%s'", skill_file_path)
+        logger.error("Failed to read SKILL.md at '%s'", skill_file)
         return None
 
-    result = _try_parse_skill_document(content, skill_file_path)
+    result = _try_parse_skill_document(content, str(skill_file))
     if result is None:
         return None
 
@@ -313,29 +309,28 @@ def _search_directories_for_skills(
     current_depth: int,
 ) -> None:
     """Recursively search for SKILL.md files up to *MAX_SEARCH_DEPTH*."""
-    skill_file_path = os.path.join(directory, SKILL_FILE_NAME)
-    if os.path.isfile(skill_file_path):
-        results.append(os.path.abspath(directory))
+    dir_path = Path(directory)
+    if (dir_path / SKILL_FILE_NAME).is_file():
+        results.append(str(dir_path.absolute()))
 
     if current_depth >= MAX_SEARCH_DEPTH:
         return
 
     try:
-        entries = os.listdir(directory)
+        entries = list(dir_path.iterdir())
     except OSError:
         return
 
     for entry in entries:
-        full = os.path.join(directory, entry)
-        if os.path.isdir(full):
-            _search_directories_for_skills(full, results, current_depth + 1)
+        if entry.is_dir():
+            _search_directories_for_skills(str(entry), results, current_depth + 1)
 
 
 def _discover_skill_directories(skill_paths: Sequence[str]) -> list[str]:
     """Discover all directories containing SKILL.md files."""
     discovered: list[str] = []
     for root_dir in skill_paths:
-        if not root_dir or not root_dir.strip() or not os.path.isdir(root_dir):
+        if not root_dir or not root_dir.strip() or not Path(root_dir).is_dir():
             continue
         _search_directories_for_skills(root_dir, discovered, current_depth=0)
     return discovered
@@ -397,16 +392,16 @@ def _read_skill_resource(skill: _FileAgentSkill, resource_name: str) -> str:
     if registered_name is None:
         raise ValueError(f"Resource '{resource_name}' not found in skill '{skill.frontmatter.name}'.")
 
-    full_path = os.path.normpath(os.path.join(skill.source_path, registered_name))
-    normalized_source = os.path.abspath(skill.source_path) + os.sep
+    full_path = os.path.normpath(Path(skill.source_path) / registered_name)
+    source_dir = str(Path(skill.source_path).absolute())
 
-    if not _is_path_within_directory(full_path, normalized_source):
+    if not _is_path_within_directory(full_path, source_dir):
         raise ValueError(f"Resource file '{resource_name}' references a path outside the skill directory.")
 
-    if not os.path.isfile(full_path):
+    if not Path(full_path).is_file():
         raise ValueError(f"Resource file '{resource_name}' not found in skill '{skill.frontmatter.name}'.")
 
-    if _has_symlink_in_path(full_path, normalized_source):
+    if _has_symlink_in_path(full_path, source_dir):
         raise ValueError(f"Resource file '{resource_name}' is a symlink that resolves outside the skill directory.")
 
     logger.info("Reading resource '%s' from skill '%s'", resource_name, skill.frontmatter.name)
