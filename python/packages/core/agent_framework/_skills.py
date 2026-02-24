@@ -28,7 +28,7 @@ from collections.abc import Sequence
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, ClassVar
-from xml.sax.saxutils import escape as xml_escape
+from html import escape as xml_escape
 
 from ._sessions import BaseContextProvider
 from ._tools import FunctionTool
@@ -90,7 +90,8 @@ Each skill provides specialized instructions, reference documents, and assets fo
 When a task aligns with a skill's domain:
 1. Use `load_skill` to retrieve the skill's instructions
 2. Follow the provided guidance
-3. Use `read_skill_resource` to read any references or other files mentioned by the skill, always using the full path as written (e.g. `references/FAQ.md`, not just `FAQ.md`)
+3. Use `read_skill_resource` to read any references or other files mentioned by the skill,
+   always using the full path as written (e.g. `references/FAQ.md`, not just `FAQ.md`)
 
 Only load what is needed, when it is needed."""
 
