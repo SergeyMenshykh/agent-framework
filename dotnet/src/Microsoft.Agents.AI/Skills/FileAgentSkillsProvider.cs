@@ -105,7 +105,7 @@ public sealed partial class FileAgentSkillsProvider : AIContextProvider
                 description: "Reads a file associated with a skill, such as references or assets."),
         ];
 
-        this._tools = options?.Executor?.GetTools() is { Count: > 0 } executorTools
+        this._tools = options?.Executor?.Tools is { Count: > 0 } executorTools
             ? baseTools.Concat(executorTools)
             : baseTools;
     }
@@ -193,7 +193,7 @@ public sealed partial class FileAgentSkillsProvider : AIContextProvider
 
         return promptTemplate
             .Replace("{skills}", sb.ToString().TrimEnd())
-            .Replace("{executor_instructions}", executor?.GetInstructions() ?? "\n");
+            .Replace("{executor_instructions}", executor?.Instructions ?? "\n");
     }
 
     [LoggerMessage(LogLevel.Information, "Loading skill: {SkillName}")]

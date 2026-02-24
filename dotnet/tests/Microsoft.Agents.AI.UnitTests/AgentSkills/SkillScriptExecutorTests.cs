@@ -48,7 +48,7 @@ public sealed class SkillScriptExecutorTests : IDisposable
         var executor = SkillScriptExecutor.HostedCodeInterpreter();
 
         // Act
-        string? instructions = executor.GetInstructions();
+        string? instructions = executor.Instructions;
 
         // Assert
         Assert.NotNull(instructions);
@@ -62,7 +62,7 @@ public sealed class SkillScriptExecutorTests : IDisposable
         var executor = SkillScriptExecutor.HostedCodeInterpreter();
 
         // Act
-        var tools = executor.GetTools();
+        var tools = executor.Tools;
 
         // Assert
         Assert.NotNull(tools);

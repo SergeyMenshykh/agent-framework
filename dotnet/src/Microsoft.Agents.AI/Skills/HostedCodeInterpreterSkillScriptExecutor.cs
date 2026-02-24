@@ -13,11 +13,12 @@ namespace Microsoft.Agents.AI;
 /// using the provider's built-in code interpreter. A <see cref="HostedCodeInterpreterTool"/> is
 /// registered to signal the provider to enable its code interpreter sandbox.
 /// </remarks>
-internal sealed class HostedCodeInterpreterExecutor : SkillScriptExecutor
+internal sealed class HostedCodeInterpreterSkillScriptExecutor : SkillScriptExecutor
 {
-    // Leading and trailing blank lines are intentional to logically separate this content
-    // from the surrounding text when merged into the FileAgentSkillsProvider instructions template.
-    private const string Instructions =
+    private static readonly AITool[] s_tools = [new HostedCodeInterpreterTool()];
+
+    /// <inheritdoc />
+    public override string Instructions { get; } =
         """
 
         Some skills include executable scripts (e.g., Python files) in their resources.
@@ -27,11 +28,6 @@ internal sealed class HostedCodeInterpreterExecutor : SkillScriptExecutor
 
         """;
 
-    private static readonly AITool[] s_tools = [new HostedCodeInterpreterTool()];
-
     /// <inheritdoc />
-    public override string GetInstructions() => Instructions;
-
-    /// <inheritdoc />
-    public override IReadOnlyList<AITool> GetTools() => s_tools;
+    public override IReadOnlyList<AITool> Tools => s_tools;
 }

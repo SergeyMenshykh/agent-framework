@@ -30,17 +30,15 @@ public abstract class SkillScriptExecutor
     /// Creates a <see cref="SkillScriptExecutor"/> that uses the LLM provider's hosted code interpreter for script execution.
     /// </summary>
     /// <returns>A <see cref="SkillScriptExecutor"/> instance configured for hosted code interpreter execution.</returns>
-    public static SkillScriptExecutor HostedCodeInterpreter() => new HostedCodeInterpreterExecutor();
+    public static SkillScriptExecutor HostedCodeInterpreter() => new HostedCodeInterpreterSkillScriptExecutor();
 
     /// <summary>
     /// Gets the additional instructions to provide to the agent for script execution.
     /// </summary>
-    /// <returns>Instructions string, or <see langword="null"/> if no additional instructions are needed.</returns>
-    public abstract string? GetInstructions();
+    public abstract string? Instructions { get; }
 
     /// <summary>
     /// Gets the additional tools to provide to the agent for script execution.
     /// </summary>
-    /// <returns>A read-only list of tools, or <see langword="null"/> if no additional tools are needed.</returns>
-    public abstract IReadOnlyList<AITool>? GetTools();
+    public abstract IReadOnlyList<AITool>? Tools { get; }
 }
