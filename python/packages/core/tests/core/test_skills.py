@@ -446,8 +446,15 @@ class TestBuildSkillsInstructionPrompt:
         assert prompt.endswith("Custom footer.")
 
     def test_invalid_prompt_template_raises(self) -> None:
+        skills = {
+            "my-skill": _FileAgentSkill(
+                frontmatter=_SkillFrontmatter("my-skill", "Does stuff."),
+                body="Body",
+                source_path="/tmp/skill",
+            ),
+        }
         with pytest.raises(ValueError, match="valid format string"):
-            _build_skills_instruction_prompt("{invalid}", {})
+            _build_skills_instruction_prompt("{invalid}", skills)
 
 
 # ---------------------------------------------------------------------------
