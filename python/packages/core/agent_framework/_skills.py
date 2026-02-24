@@ -27,7 +27,7 @@ import re
 from collections.abc import Sequence
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, ClassVar
+from typing import TYPE_CHECKING, Any, ClassVar, Final
 from html import escape as xml_escape
 
 from ._sessions import BaseContextProvider
@@ -43,10 +43,10 @@ logger = logging.getLogger(__name__)
 # Constants
 # ---------------------------------------------------------------------------
 
-_SKILL_FILE_NAME = "SKILL.md"
-_MAX_SEARCH_DEPTH = 2
-_MAX_NAME_LENGTH = 64
-_MAX_DESCRIPTION_LENGTH = 1024
+SKILL_FILE_NAME: Final[str] = "SKILL.md"
+MAX_SEARCH_DEPTH: Final[int] = 2
+MAX_NAME_LENGTH: Final[int] = 64
+MAX_DESCRIPTION_LENGTH: Final[int] = 1024
 
 # ---------------------------------------------------------------------------
 # Compiled regex patterns (ported from .NET FileAgentSkillLoader)
@@ -216,12 +216,12 @@ def _try_parse_skill_document(
         logger.error("SKILL.md at '%s' is missing a 'name' field in frontmatter", skill_file_path)
         return None
 
-    if len(name) > _MAX_NAME_LENGTH or not _VALID_NAME_RE.match(name):
+    if len(name) > MAX_NAME_LENGTH or not _VALID_NAME_RE.match(name):
         logger.error(
             "SKILL.md at '%s' has an invalid 'name' value: Must be %d characters or fewer, "
             "using only lowercase letters, numbers, and hyphens, and must not start or end with a hyphen.",
             skill_file_path,
-            _MAX_NAME_LENGTH,
+            MAX_NAME_LENGTH,
         )
         return None
 
@@ -229,11 +229,11 @@ def _try_parse_skill_document(
         logger.error("SKILL.md at '%s' is missing a 'description' field in frontmatter", skill_file_path)
         return None
 
-    if len(description) > _MAX_DESCRIPTION_LENGTH:
+    if len(description) > MAX_DESCRIPTION_LENGTH:
         logger.error(
             "SKILL.md at '%s' has an invalid 'description' value: Must be %d characters or fewer.",
             skill_file_path,
-            _MAX_DESCRIPTION_LENGTH,
+            MAX_DESCRIPTION_LENGTH,
         )
         return None
 
@@ -281,7 +281,7 @@ def _validate_resources(
 
 def _parse_skill_file(skill_dir_path: str) -> _FileAgentSkill | None:
     """Parse a SKILL.md file from the given directory."""
-    skill_file_path = os.path.join(skill_dir_path, _SKILL_FILE_NAME)
+    skill_file_path = os.path.join(skill_dir_path, SKILL_FILE_NAME)
 
     try:
         content = Path(skill_file_path).read_text(encoding="utf-8")
@@ -312,12 +312,12 @@ def _search_directories_for_skills(
     results: list[str],
     current_depth: int,
 ) -> None:
-    """Recursively search for SKILL.md files up to *_MAX_SEARCH_DEPTH*."""
-    skill_file_path = os.path.join(directory, _SKILL_FILE_NAME)
+    """Recursively search for SKILL.md files up to *MAX_SEARCH_DEPTH*."""
+    skill_file_path = os.path.join(directory, SKILL_FILE_NAME)
     if os.path.isfile(skill_file_path):
         results.append(os.path.abspath(directory))
 
-    if current_depth >= _MAX_SEARCH_DEPTH:
+    if current_depth >= MAX_SEARCH_DEPTH:
         return
 
     try:
