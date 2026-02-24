@@ -509,11 +509,29 @@ class FileAgentSkillsProvider(BaseContextProvider):
                 name="load_skill",
                 description="Loads the full instructions for a specific skill.",
                 func=self._load_skill,
+                input_model={
+                    "type": "object",
+                    "properties": {
+                        "skill_name": {"type": "string", "description": "The name of the skill to load."},
+                    },
+                    "required": ["skill_name"],
+                },
             ),
             FunctionTool(
                 name="read_skill_resource",
                 description="Reads a file associated with a skill, such as references or assets.",
                 func=self._read_skill_resource,
+                input_model={
+                    "type": "object",
+                    "properties": {
+                        "skill_name": {"type": "string", "description": "The name of the skill."},
+                        "resource_name": {
+                            "type": "string",
+                            "description": "The relative path of the resource file.",
+                        },
+                    },
+                    "required": ["skill_name", "resource_name"],
+                },
             ),
         ]
 
