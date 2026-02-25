@@ -494,9 +494,9 @@ class FileAgentSkillsProvider(BaseContextProvider):
         """
         super().__init__(source_id or self.DEFAULT_SOURCE_ID)
 
-        skill_paths = [str(skill_paths)] if isinstance(skill_paths, (str, Path)) else [str(p) for p in skill_paths]
+        resolved_paths: Sequence[str] = [str(skill_paths)] if isinstance(skill_paths, (str, Path)) else [str(p) for p in skill_paths]
 
-        self._skills = _discover_and_load_skills(skill_paths)
+        self._skills = _discover_and_load_skills(resolved_paths)
         self._skills_instruction_prompt = _build_skills_instruction_prompt(skills_instruction_prompt, self._skills)
         self._tools = [
             FunctionTool(
