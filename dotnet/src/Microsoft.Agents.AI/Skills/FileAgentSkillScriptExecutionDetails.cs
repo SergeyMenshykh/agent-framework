@@ -16,10 +16,10 @@ public sealed class FileAgentSkillScriptExecutionDetails
     /// <summary>
     /// Gets the additional instructions to provide to the agent for script execution.
     /// </summary>
-    public string? Instructions { get; init; }
+    public string? Instructions { get; set; }
 
     /// <summary>
     /// Gets the additional tools to provide to the agent for script execution.
     /// </summary>
-    public IReadOnlyList<AITool>? Tools { get; init; }
+    public IReadOnlyList<AITool>? Tools { get; set; }
 }
