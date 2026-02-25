@@ -24,9 +24,9 @@ public sealed class FileAgentSkillsProviderOptions
     /// </summary>
     /// <remarks>
     /// When <see langword="null"/> (the default), script execution is disabled and skills only provide
-    /// instructions and resources. Set this to a <see cref="SkillScriptExecutor"/> instance (e.g.,
-    /// <see cref="SkillScriptExecutor.HostedCodeInterpreter()"/>) to enable script execution with
+    /// instructions and resources. Set this to a <see cref="FileAgentSkillScriptExecutor"/> instance (e.g.,
+    /// <see cref="FileAgentSkillScriptExecutor.HostedCodeInterpreter()"/>) to enable script execution with
     /// mode-specific instructions and tools.
     /// </remarks>
-    public SkillScriptExecutor? ScriptExecutor { get; set; }
+    public FileAgentSkillScriptExecutor? ScriptExecutor { get; set; }
 }

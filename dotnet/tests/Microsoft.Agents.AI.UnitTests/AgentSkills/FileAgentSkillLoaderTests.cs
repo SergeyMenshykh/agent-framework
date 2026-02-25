@@ -501,7 +501,7 @@ public sealed class FileAgentSkillLoaderTests : IDisposable
         }
 
         // Manually construct a skill that bypasses discovery validation
-        var frontmatter = new SkillFrontmatter("symlink-read-skill", "A skill");
+        var frontmatter = new FileAgentSkillFrontmatter("symlink-read-skill", "A skill");
         var skill = new FileAgentSkill(
             frontmatter: frontmatter,
             body: "See [doc](refs/data.md).",

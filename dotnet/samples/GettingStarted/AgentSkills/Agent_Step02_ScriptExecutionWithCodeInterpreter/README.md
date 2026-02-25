@@ -6,14 +6,14 @@ This sample demonstrates how to use **Agent Skills** with **script execution** v
 
 In the [basic skills sample](../Agent_Step01_BasicSkills/), skills only provide instructions and resources as text. This sample adds **script execution** — the agent can load Python scripts from skill resources and execute them using the LLM provider's built-in code interpreter.
 
-This is enabled by configuring `SkillScriptExecutor.HostedCodeInterpreter()` on the skills provider options:
+This is enabled by configuring `FileAgentSkillScriptExecutor.HostedCodeInterpreter()` on the skills provider options:
 
 ```csharp
 var skillsProvider = new FileAgentSkillsProvider(
     skillPath: Path.Combine(AppContext.BaseDirectory, "skills"),
     options: new FileAgentSkillsProviderOptions
     {
-        ScriptExecutor = SkillScriptExecutor.HostedCodeInterpreter()
+        ScriptExecutor = FileAgentSkillScriptExecutor.HostedCodeInterpreter()
     });
 ```
 

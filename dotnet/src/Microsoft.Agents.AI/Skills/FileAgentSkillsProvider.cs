@@ -91,7 +91,11 @@ public sealed partial class FileAgentSkillsProvider : AIContextProvider
         this._loader = new FileAgentSkillLoader(this._logger);
         this._skills = this._loader.DiscoverAndLoadSkills(skillPaths);
 
-        this._skillsInstructionPrompt = BuildSkillsInstructionPrompt(options, this._skills, options?.ScriptExecutor);
+        var executionDetails = options?.ScriptExecutor is { } executor
+            ? executor.GetExecutionDetails(new(this._skills, this._loader))
+            : null;
+
+        this._skillsInstructionPrompt = BuildSkillsInstructionPrompt(options, this._skills, executionDetails?.Instructions);
 
         AITool[] baseTools =
         [
@@ -105,7 +109,7 @@ public sealed partial class FileAgentSkillsProvider : AIContextProvider
                 description: "Reads a file associated with a skill, such as references or assets."),
         ];
 
-        this._tools = options?.ScriptExecutor?.Tools is { Count: > 0 } executorTools
+        this._tools = executionDetails?.Tools is { Count: > 0 } executorTools
             ? baseTools.Concat(executorTools)
             : baseTools;
     }
@@ -170,7 +174,7 @@ public sealed partial class FileAgentSkillsProvider : AIContextProvider
         }
     }
 
-    private static string? BuildSkillsInstructionPrompt(FileAgentSkillsProviderOptions? options, Dictionary<string, FileAgentSkill> skills, SkillScriptExecutor? executor)
+    private static string? BuildSkillsInstructionPrompt(FileAgentSkillsProviderOptions? options, Dictionary<string, FileAgentSkill> skills, string? instructions)
     {
         string promptTemplate = options?.SkillsInstructionPrompt ?? DefaultSkillsInstructionPrompt;
 
@@ -193,7 +197,7 @@ public sealed partial class FileAgentSkillsProvider : AIContextProvider
 
         return promptTemplate
             .Replace("{skills}", sb.ToString().TrimEnd())
-            .Replace("{executor_instructions}", executor?.Instructions ?? "\n");
+            .Replace("{executor_instructions}", instructions ?? "\n");
     }
 
     [LoggerMessage(LogLevel.Information, "Loading skill: {SkillName}")]

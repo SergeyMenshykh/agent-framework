@@ -1,6 +1,9 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 
+using System;
+using System.Collections.Generic;
 using Microsoft.Extensions.AI;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace Microsoft.Agents.AI.UnitTests.AgentSkills;
 
@@ -9,55 +12,59 @@ namespace Microsoft.Agents.AI.UnitTests.AgentSkills;
 /// </summary>
 public sealed class HostedCodeInterpreterSkillScriptExecutorTests
 {
+    private static readonly FileAgentSkillScriptExecutionContext s_emptyContext = new(
+        new Dictionary<string, FileAgentSkill>(StringComparer.OrdinalIgnoreCase),
+        new FileAgentSkillLoader(NullLogger.Instance));
+
     [Fact]
-    public void GetInstructions_ReturnsScriptExecutionGuidance()
+    public void GetExecutionDetails_ReturnsScriptExecutionGuidance()
     {
         // Arrange
         var executor = new HostedCodeInterpreterSkillScriptExecutor();
 
         // Act
-        string? instructions = executor.Instructions;
+        var details = executor.GetExecutionDetails(s_emptyContext);
 
         // Assert
-        Assert.NotNull(instructions);
-        Assert.Contains("read_skill_resource", instructions);
-        Assert.Contains("code interpreter", instructions);
+        Assert.NotNull(details.Instructions);
+        Assert.Contains("read_skill_resource", details.Instructions);
+        Assert.Contains("code interpreter", details.Instructions);
     }
 
     [Fact]
-    public void GetTools_ReturnsSingleHostedCodeInterpreterTool()
+    public void GetExecutionDetails_ReturnsSingleHostedCodeInterpreterTool()
     {
         // Arrange
         var executor = new HostedCodeInterpreterSkillScriptExecutor();
 
         // Act
-        var tools = executor.Tools;
+        var details = executor.GetExecutionDetails(s_emptyContext);
 
         // Assert
-        Assert.NotNull(tools);
-        Assert.Single(tools!);
-        Assert.IsType<HostedCodeInterpreterTool>(tools![0]);
+        Assert.NotNull(details.Tools);
+        Assert.Single(details.Tools!);
+        Assert.IsType<HostedCodeInterpreterTool>(details.Tools![0]);
     }
 
     [Fact]
-    public void GetTools_ReturnsSameInstanceOnMultipleCalls()
+    public void GetExecutionDetails_ReturnsSameInstanceOnMultipleCalls()
     {
         // Arrange
         var executor = new HostedCodeInterpreterSkillScriptExecutor();
 
         // Act
-        var tools1 = executor.Tools;
-        var tools2 = executor.Tools;
+        var details1 = executor.GetExecutionDetails(s_emptyContext);
+        var details2 = executor.GetExecutionDetails(s_emptyContext);
 
-        // Assert — static tools array should be reused
-        Assert.Same(tools1, tools2);
+        // Assert — static details should be reused
+        Assert.Same(details1, details2);
     }
 
     [Fact]
     public void FactoryMethod_ReturnsHostedCodeInterpreterSkillScriptExecutor()
     {
         // Act
-        var executor = SkillScriptExecutor.HostedCodeInterpreter();
+        var executor = FileAgentSkillScriptExecutor.HostedCodeInterpreter();
 
         // Assert
         Assert.IsType<HostedCodeInterpreterSkillScriptExecutor>(executor);

@@ -1,7 +1,7 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 
 // This sample demonstrates how to use Agent Skills with script execution via the hosted code interpreter.
-// When SkillScriptExecutor.HostedCodeInterpreter() is configured, the agent can load and execute scripts
+// When FileAgentSkillScriptExecutor.HostedCodeInterpreter() is configured, the agent can load and execute scripts
 // from skill resources using the LLM provider's built-in code interpreter.
 //
 // This sample includes the password-generator skill:
@@ -23,7 +23,7 @@ var skillsProvider = new FileAgentSkillsProvider(
     skillPath: Path.Combine(AppContext.BaseDirectory, "skills"),
     options: new FileAgentSkillsProviderOptions
     {
-        ScriptExecutor = SkillScriptExecutor.HostedCodeInterpreter()
+        ScriptExecutor = FileAgentSkillScriptExecutor.HostedCodeInterpreter()
     });
 
 // --- Agent Setup ---

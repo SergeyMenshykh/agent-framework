@@ -1,20 +1,23 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.Shared.Diagnostics;
+using Microsoft.Shared.DiagnosticIds;
 
 namespace Microsoft.Agents.AI;
 
 /// <summary>
 /// Parsed YAML frontmatter from a SKILL.md file, containing the skill's name and description.
 /// </summary>
-internal sealed class SkillFrontmatter
+[Experimental(DiagnosticIds.Experiments.AgentsAIExperiments)]
+public sealed class FileAgentSkillFrontmatter
 {
     /// <summary>
-    /// Initializes a new instance of the <see cref="SkillFrontmatter"/> class.
+    /// Initializes a new instance of the <see cref="FileAgentSkillFrontmatter"/> class.
     /// </summary>
     /// <param name="name">Skill name.</param>
     /// <param name="description">Skill description.</param>
-    public SkillFrontmatter(string name, string description)
+    internal FileAgentSkillFrontmatter(string name, string description)
     {
         this.Name = Throw.IfNullOrWhitespace(name);
         this.Description = Throw.IfNullOrWhitespace(description);

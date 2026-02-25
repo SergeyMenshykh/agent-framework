@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -9,6 +10,7 @@ using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
+using Microsoft.Shared.DiagnosticIds;
 
 namespace Microsoft.Agents.AI;
 
@@ -20,7 +22,8 @@ namespace Microsoft.Agents.AI;
 /// Each file is validated for YAML frontmatter and resource integrity. Invalid skills are excluded
 /// with logged warnings. Resource paths are checked against path traversal and symlink escape attacks.
 /// </remarks>
-internal sealed partial class FileAgentSkillLoader
+[Experimental(DiagnosticIds.Experiments.AgentsAIExperiments)]
+public sealed partial class FileAgentSkillLoader
 {
     private const string SkillFileName = "SKILL.md";
     private const int MaxSearchDepth = 2;
@@ -114,7 +117,7 @@ internal sealed partial class FileAgentSkillLoader
     /// <exception cref="InvalidOperationException">
     /// The resource is not registered, resolves outside the skill directory, or does not exist.
     /// </exception>
-    internal async Task<string> ReadSkillResourceAsync(FileAgentSkill skill, string resourceName, CancellationToken cancellationToken = default)
+    public async Task<string> ReadSkillResourceAsync(FileAgentSkill skill, string resourceName, CancellationToken cancellationToken = default)
     {
         resourceName = NormalizeResourcePath(resourceName);
 
@@ -192,7 +195,7 @@ internal sealed partial class FileAgentSkillLoader
 
         string content = File.ReadAllText(skillFilePath, Encoding.UTF8);
 
-        if (!this.TryParseSkillDocument(content, skillFilePath, out SkillFrontmatter frontmatter, out string body))
+        if (!this.TryParseSkillDocument(content, skillFilePath, out FileAgentSkillFrontmatter frontmatter, out string body))
         {
             return null;
         }
@@ -211,7 +214,7 @@ internal sealed partial class FileAgentSkillLoader
             resourceNames: resourceNames);
     }
 
-    private bool TryParseSkillDocument(string content, string skillFilePath, out SkillFrontmatter frontmatter, out string body)
+    private bool TryParseSkillDocument(string content, string skillFilePath, out FileAgentSkillFrontmatter frontmatter, out string body)
     {
         frontmatter = null!;
         body = null!;
@@ -267,7 +270,7 @@ internal sealed partial class FileAgentSkillLoader
             return false;
         }
 
-        frontmatter = new SkillFrontmatter(name, description);
+        frontmatter = new FileAgentSkillFrontmatter(name, description);
         body = content.Substring(match.Index + match.Length).TrimStart();
 
         return true;
