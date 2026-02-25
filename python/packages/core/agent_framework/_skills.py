@@ -26,9 +26,9 @@ import os
 import re
 from collections.abc import Sequence
 from dataclasses import dataclass, field
+from html import escape as xml_escape
 from pathlib import Path, PurePosixPath
 from typing import TYPE_CHECKING, Any, ClassVar, Final
-from html import escape as xml_escape
 
 from ._sessions import BaseContextProvider
 from ._tools import FunctionTool
@@ -97,6 +97,7 @@ Only load what is needed, when it is needed."""
 
 # region Private data classes
 
+
 @dataclass
 class _SkillFrontmatter:
     """Parsed YAML frontmatter from a SKILL.md file."""
@@ -117,6 +118,7 @@ class _FileAgentSkill:
 # endregion
 
 # region Private module-level functions (skill discovery, parsing, security)
+
 
 def _normalize_resource_path(path: str) -> str:
     """Normalize a relative resource path.
@@ -438,6 +440,7 @@ def _build_skills_instruction_prompt(
 
 # region Public API
 
+
 class FileAgentSkillsProvider(BaseContextProvider):
     """A context provider that discovers and exposes Agent Skills from filesystem directories.
 
@@ -491,10 +494,7 @@ class FileAgentSkillsProvider(BaseContextProvider):
         """
         super().__init__(source_id or self.DEFAULT_SOURCE_ID)
 
-        if isinstance(skill_paths, (str, Path)):
-            skill_paths = [str(skill_paths)]
-        else:
-            skill_paths = [str(p) for p in skill_paths]
+        skill_paths = [str(skill_paths)] if isinstance(skill_paths, (str, Path)) else [str(p) for p in skill_paths]
 
         self._skills = _discover_and_load_skills(skill_paths)
         self._skills_instruction_prompt = _build_skills_instruction_prompt(skills_instruction_prompt, self._skills)
