@@ -60,7 +60,7 @@ async def main() -> None:
         )
         print(f"Agent: {response1}\n")
 
-        # --- Example 2: Filing an expense report (multi-turn with template asset) ---
+        # --- Example 2: Filing an expense report (uses template asset) ---
         print("Example 2: Filing an expense report")
         print("---------------------------------------")
         session = agent.create_session()

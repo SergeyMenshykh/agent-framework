@@ -39,18 +39,16 @@ if TYPE_CHECKING:
 
 logger = logging.getLogger(__name__)
 
-# ---------------------------------------------------------------------------
-# Constants
-# ---------------------------------------------------------------------------
+# region Constants
 
 SKILL_FILE_NAME: Final[str] = "SKILL.md"
 MAX_SEARCH_DEPTH: Final[int] = 2
 MAX_NAME_LENGTH: Final[int] = 64
 MAX_DESCRIPTION_LENGTH: Final[int] = 1024
 
-# ---------------------------------------------------------------------------
-# Compiled regex patterns (ported from .NET FileAgentSkillLoader)
-# ---------------------------------------------------------------------------
+# endregion
+
+# region Compiled regex patterns (ported from .NET FileAgentSkillLoader)
 
 # Matches YAML frontmatter delimited by "---" lines.
 # The \uFEFF? prefix allows an optional UTF-8 BOM.
@@ -95,11 +93,9 @@ When a task aligns with a skill's domain:
 
 Only load what is needed, when it is needed."""
 
+# endregion
 
-# ---------------------------------------------------------------------------
-# Private data classes
-# ---------------------------------------------------------------------------
-
+# region Private data classes
 
 @dataclass
 class _SkillFrontmatter:
@@ -118,11 +114,9 @@ class _FileAgentSkill:
     source_path: str
     resource_names: list[str] = field(default_factory=list)
 
+# endregion
 
-# ---------------------------------------------------------------------------
-# Private module-level functions (skill discovery, parsing, security)
-# ---------------------------------------------------------------------------
-
+# region Private module-level functions (skill discovery, parsing, security)
 
 def _normalize_resource_path(path: str) -> str:
     """Normalize a relative resource path.
@@ -440,11 +434,9 @@ def _build_skills_instruction_prompt(
 
     return template.format("\n".join(lines))
 
+# endregion
 
-# ---------------------------------------------------------------------------
-# Public API
-# ---------------------------------------------------------------------------
-
+# region Public API
 
 class FileAgentSkillsProvider(BaseContextProvider):
     """A context provider that discovers and exposes Agent Skills from filesystem directories.
@@ -483,7 +475,7 @@ class FileAgentSkillsProvider(BaseContextProvider):
 
     def __init__(
         self,
-        skill_paths: str | Sequence[str],
+        skill_paths: str | Path | Sequence[str | Path],
         *,
         skills_instruction_prompt: str | None = None,
         source_id: str | None = None,
@@ -499,8 +491,10 @@ class FileAgentSkillsProvider(BaseContextProvider):
         """
         super().__init__(source_id or self.DEFAULT_SOURCE_ID)
 
-        if isinstance(skill_paths, str):
-            skill_paths = [skill_paths]
+        if isinstance(skill_paths, (str, Path)):
+            skill_paths = [str(skill_paths)]
+        else:
+            skill_paths = [str(p) for p in skill_paths]
 
         self._skills = _discover_and_load_skills(skill_paths)
         self._skills_instruction_prompt = _build_skills_instruction_prompt(skills_instruction_prompt, self._skills)
@@ -599,3 +593,5 @@ class FileAgentSkillsProvider(BaseContextProvider):
         except Exception:
             logger.exception("Failed to read resource '%s' from skill '%s'", resource_name, skill_name)
             return f"Error: Failed to read resource '{resource_name}' from skill '{skill_name}'."
+
+# endregion
