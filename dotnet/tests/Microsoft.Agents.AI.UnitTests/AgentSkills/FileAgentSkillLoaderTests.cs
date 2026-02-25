@@ -532,26 +532,37 @@ public sealed class FileAgentSkillLoaderTests : IDisposable
         Assert.Equal("Body content.", skills["bom-skill"].Body);
     }
 
-    [Fact]
-    public void DiscoverAndLoadSkills_BacktickResourcePath_ExtractsResourceNames()
+    [Theory]
+    [InlineData("No resource references.", new string[0])]
+    [InlineData("Review `refs/FAQ.md` for details.", new[] { "refs/FAQ.md" })]
+    [InlineData("See [guide](refs/guide.md) then run `scripts/run.py`.", new[] { "refs/guide.md", "scripts/run.py" })]
+    public void DiscoverAndLoadSkills_ResourceReferences_ExtractsExpectedResourceNames(string body, string[] expectedResources)
     {
-        // Arrange — body references a resource using backtick-quoted path instead of a markdown link
-        string skillDir = Path.Combine(this._testRoot, "backtick-skill");
-        string refsDir = Path.Combine(skillDir, "refs");
-        Directory.CreateDirectory(refsDir);
-        File.WriteAllText(Path.Combine(refsDir, "FAQ.md"), "FAQ content");
+        // Arrange — create skill with resource files on disk so validation passes
+        string skillDir = Path.Combine(this._testRoot, "res-skill");
+        Directory.CreateDirectory(skillDir);
+        foreach (string resource in expectedResources)
+        {
+            string resourcePath = Path.Combine(skillDir, resource.Replace('/', Path.DirectorySeparatorChar));
+            Directory.CreateDirectory(Path.GetDirectoryName(resourcePath)!);
+            File.WriteAllText(resourcePath, "content");
+        }
+
         File.WriteAllText(
             Path.Combine(skillDir, "SKILL.md"),
-            "---\nname: backtick-skill\ndescription: Has backtick resources\n---\nReview `refs/FAQ.md` for details.");
+            $"---\nname: res-skill\ndescription: Resource test\n---\n{body}");
 
         // Act
         var skills = this._loader.DiscoverAndLoadSkills(new[] { this._testRoot });
 
         // Assert
         Assert.Single(skills);
-        var skill = skills["backtick-skill"];
-        Assert.Single(skill.ResourceNames);
-        Assert.Equal("refs/FAQ.md", skill.ResourceNames[0]);
+        var skill = skills["res-skill"];
+        Assert.Equal(expectedResources.Length, skill.ResourceNames.Count);
+        foreach (string expected in expectedResources)
+        {
+            Assert.Contains(expected, skill.ResourceNames);
+        }
     }
 
     [Fact]
@@ -567,32 +578,6 @@ public sealed class FileAgentSkillLoaderTests : IDisposable
 
         // Assert
         Assert.Equal("Backtick content.", content);
-    }
-
-    [Fact]
-    public void DiscoverAndLoadSkills_MixedBacktickAndMarkdownLinks_ExtractsBothResources()
-    {
-        // Arrange — body uses both markdown link and backtick-quoted path
-        string skillDir = Path.Combine(this._testRoot, "mixed-ref-skill");
-        string refsDir = Path.Combine(skillDir, "refs");
-        string scriptsDir = Path.Combine(skillDir, "scripts");
-        Directory.CreateDirectory(refsDir);
-        Directory.CreateDirectory(scriptsDir);
-        File.WriteAllText(Path.Combine(refsDir, "guide.md"), "guide");
-        File.WriteAllText(Path.Combine(scriptsDir, "run.py"), "print('hi')");
-        File.WriteAllText(
-            Path.Combine(skillDir, "SKILL.md"),
-            "---\nname: mixed-ref-skill\ndescription: Mixed references\n---\nSee [guide](refs/guide.md) then run `scripts/run.py`.");
-
-        // Act
-        var skills = this._loader.DiscoverAndLoadSkills(new[] { this._testRoot });
-
-        // Assert
-        Assert.Single(skills);
-        var skill = skills["mixed-ref-skill"];
-        Assert.Equal(2, skill.ResourceNames.Count);
-        Assert.Contains("refs/guide.md", skill.ResourceNames);
-        Assert.Contains("scripts/run.py", skill.ResourceNames);
     }
 
     private string CreateSkillDirectory(string name, string description, string body)

@@ -23,7 +23,7 @@ var skillsProvider = new FileAgentSkillsProvider(
     skillPath: Path.Combine(AppContext.BaseDirectory, "skills"),
     options: new FileAgentSkillsProviderOptions
     {
-        Executor = SkillScriptExecutor.HostedCodeInterpreter()
+        ScriptExecutor = SkillScriptExecutor.HostedCodeInterpreter()
     });
 
 // --- Agent Setup ---

@@ -91,7 +91,7 @@ public sealed partial class FileAgentSkillsProvider : AIContextProvider
         this._loader = new FileAgentSkillLoader(this._logger);
         this._skills = this._loader.DiscoverAndLoadSkills(skillPaths);
 
-        this._skillsInstructionPrompt = BuildSkillsInstructionPrompt(options, this._skills, options?.Executor);
+        this._skillsInstructionPrompt = BuildSkillsInstructionPrompt(options, this._skills, options?.ScriptExecutor);
 
         AITool[] baseTools =
         [
@@ -105,7 +105,7 @@ public sealed partial class FileAgentSkillsProvider : AIContextProvider
                 description: "Reads a file associated with a skill, such as references or assets."),
         ];
 
-        this._tools = options?.Executor?.Tools is { Count: > 0 } executorTools
+        this._tools = options?.ScriptExecutor?.Tools is { Count: > 0 } executorTools
             ? baseTools.Concat(executorTools)
             : baseTools;
     }

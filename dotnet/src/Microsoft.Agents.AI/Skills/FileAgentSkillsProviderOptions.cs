@@ -28,5 +28,5 @@ public sealed class FileAgentSkillsProviderOptions
     /// <see cref="SkillScriptExecutor.HostedCodeInterpreter()"/>) to enable script execution with
     /// mode-specific instructions and tools.
     /// </remarks>
-    public SkillScriptExecutor? Executor { get; set; }
+    public SkillScriptExecutor? ScriptExecutor { get; set; }
 }

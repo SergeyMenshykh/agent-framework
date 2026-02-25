@@ -75,7 +75,7 @@ public sealed class SkillScriptExecutorTests : IDisposable
         // Arrange
         CreateSkill(this._testRoot, "exec-skill", "Executor test", "Body.");
         var executor = SkillScriptExecutor.HostedCodeInterpreter();
-        var options = new FileAgentSkillsProviderOptions { Executor = executor };
+        var options = new FileAgentSkillsProviderOptions { ScriptExecutor = executor };
         var provider = new FileAgentSkillsProvider(this._testRoot, options);
         var invokingContext = new AIContextProvider.InvokingContext(this._agent, session: null, new AIContext());
 
@@ -93,7 +93,7 @@ public sealed class SkillScriptExecutorTests : IDisposable
         // Arrange
         CreateSkill(this._testRoot, "tools-exec-skill", "Executor tools test", "Body.");
         var executor = SkillScriptExecutor.HostedCodeInterpreter();
-        var options = new FileAgentSkillsProviderOptions { Executor = executor };
+        var options = new FileAgentSkillsProviderOptions { ScriptExecutor = executor };
         var provider = new FileAgentSkillsProvider(this._testRoot, options);
         var invokingContext = new AIContextProvider.InvokingContext(this._agent, session: null, new AIContext());
 
@@ -131,7 +131,7 @@ public sealed class SkillScriptExecutorTests : IDisposable
         // Arrange
         CreateSkill(this._testRoot, "merge-skill", "Merge test", "Body.");
         var executor = SkillScriptExecutor.HostedCodeInterpreter();
-        var options = new FileAgentSkillsProviderOptions { Executor = executor };
+        var options = new FileAgentSkillsProviderOptions { ScriptExecutor = executor };
         var provider = new FileAgentSkillsProvider(this._testRoot, options);
         var invokingContext = new AIContextProvider.InvokingContext(this._agent, session: null, new AIContext());
 
