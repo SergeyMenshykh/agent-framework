@@ -1,8 +1,8 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 
 using System.Diagnostics.CodeAnalysis;
-using Microsoft.Shared.Diagnostics;
 using Microsoft.Shared.DiagnosticIds;
+using Microsoft.Shared.Diagnostics;
 
 namespace Microsoft.Agents.AI;
 
