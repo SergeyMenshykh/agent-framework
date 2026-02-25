@@ -12,7 +12,7 @@ namespace Microsoft.Agents.AI;
 /// using the provider's built-in code interpreter. A <see cref="HostedCodeInterpreterTool"/> is
 /// registered to signal the provider to enable its code interpreter sandbox.
 /// </remarks>
-internal sealed class HostedCodeInterpreterSkillScriptExecutor : FileAgentSkillScriptExecutor
+internal sealed class HostedCodeInterpreterFileAgentSkillScriptExecutor : FileAgentSkillScriptExecutor
 {
     private static readonly FileAgentSkillScriptExecutionDetails s_contribution = new()
     {

@@ -28,7 +28,7 @@ public abstract class FileAgentSkillScriptExecutor
     /// Creates a <see cref="FileAgentSkillScriptExecutor"/> that uses the LLM provider's hosted code interpreter for script execution.
     /// </summary>
     /// <returns>A <see cref="FileAgentSkillScriptExecutor"/> instance configured for hosted code interpreter execution.</returns>
-    public static FileAgentSkillScriptExecutor HostedCodeInterpreter() => new HostedCodeInterpreterSkillScriptExecutor();
+    public static FileAgentSkillScriptExecutor HostedCodeInterpreter() => new HostedCodeInterpreterFileAgentSkillScriptExecutor();
 
     /// <summary>
     /// Returns the tools and instructions contributed by this executor.

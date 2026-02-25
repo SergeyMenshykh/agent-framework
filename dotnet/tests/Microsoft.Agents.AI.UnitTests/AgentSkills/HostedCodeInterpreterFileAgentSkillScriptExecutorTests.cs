@@ -8,9 +8,9 @@ using Microsoft.Extensions.Logging.Abstractions;
 namespace Microsoft.Agents.AI.UnitTests.AgentSkills;
 
 /// <summary>
-/// Unit tests for <see cref="HostedCodeInterpreterSkillScriptExecutor"/>.
+/// Unit tests for <see cref="HostedCodeInterpreterFileAgentSkillScriptExecutor"/>.
 /// </summary>
-public sealed class HostedCodeInterpreterSkillScriptExecutorTests
+public sealed class HostedCodeInterpreterFileAgentSkillScriptExecutorTests
 {
     private static readonly FileAgentSkillScriptExecutionContext s_emptyContext = new(
         new Dictionary<string, FileAgentSkill>(StringComparer.OrdinalIgnoreCase),
@@ -20,7 +20,7 @@ public sealed class HostedCodeInterpreterSkillScriptExecutorTests
     public void GetExecutionDetails_ReturnsScriptExecutionGuidance()
     {
         // Arrange
-        var executor = new HostedCodeInterpreterSkillScriptExecutor();
+        var executor = new HostedCodeInterpreterFileAgentSkillScriptExecutor();
 
         // Act
         var details = executor.GetExecutionDetails(s_emptyContext);
@@ -35,7 +35,7 @@ public sealed class HostedCodeInterpreterSkillScriptExecutorTests
     public void GetExecutionDetails_ReturnsSingleHostedCodeInterpreterTool()
     {
         // Arrange
-        var executor = new HostedCodeInterpreterSkillScriptExecutor();
+        var executor = new HostedCodeInterpreterFileAgentSkillScriptExecutor();
 
         // Act
         var details = executor.GetExecutionDetails(s_emptyContext);
@@ -50,7 +50,7 @@ public sealed class HostedCodeInterpreterSkillScriptExecutorTests
     public void GetExecutionDetails_ReturnsSameInstanceOnMultipleCalls()
     {
         // Arrange
-        var executor = new HostedCodeInterpreterSkillScriptExecutor();
+        var executor = new HostedCodeInterpreterFileAgentSkillScriptExecutor();
 
         // Act
         var details1 = executor.GetExecutionDetails(s_emptyContext);
@@ -61,12 +61,12 @@ public sealed class HostedCodeInterpreterSkillScriptExecutorTests
     }
 
     [Fact]
-    public void FactoryMethod_ReturnsHostedCodeInterpreterSkillScriptExecutor()
+    public void FactoryMethod_ReturnsHostedCodeInterpreterFileAgentSkillScriptExecutor()
     {
         // Act
         var executor = FileAgentSkillScriptExecutor.HostedCodeInterpreter();
 
         // Assert
-        Assert.IsType<HostedCodeInterpreterSkillScriptExecutor>(executor);
+        Assert.IsType<HostedCodeInterpreterFileAgentSkillScriptExecutor>(executor);
     }
 }
