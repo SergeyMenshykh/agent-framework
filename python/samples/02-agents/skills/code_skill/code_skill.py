@@ -2,6 +2,7 @@
 
 import asyncio
 import os
+import sys
 from textwrap import dedent
 
 from agent_framework import Agent, AgentSkill, AgentSkillResource, AgentSkillsProvider
@@ -79,7 +80,7 @@ def environment() -> str:
       # Environment Configuration
       - Environment: {env}
       - Region: {region}
-      - Python: {os.sys.version}
+      - Python: {sys.version}
     """
 
 

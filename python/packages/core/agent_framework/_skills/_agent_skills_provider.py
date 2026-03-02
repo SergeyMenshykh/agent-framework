@@ -662,7 +662,10 @@ def _read_file_skill_resource(skill: AgentSkill, resource_name: str) -> str:
         raise ValueError(f"Resource file '{resource_name}' not found in skill '{skill.name}'.")
 
     if _has_symlink_in_path(resource_full_path, root_directory_path):
-        raise ValueError(f"Resource file '{resource_name}' in skill '{skill.name}' has a symlink in its path; symlinks are not allowed.")
+        raise ValueError(
+            f"Resource file '{resource_name}' in skill '{skill.name}' "
+            "has a symlink in its path; symlinks are not allowed."
+        )
 
     logger.info("Reading resource '%s' from skill '%s'", resource_name, skill.name)
     return Path(resource_full_path).read_text(encoding="utf-8")
