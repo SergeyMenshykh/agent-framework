@@ -15,7 +15,7 @@ load_dotenv()
 """
 Agent Skills Sample
 
-This sample demonstrates how to use file-based Agent Skills with a AgentSkillsProvider.
+This sample demonstrates how to use file-based Agent Skills with an AgentSkillsProvider.
 Agent Skills are modular packages of instructions and resources that extend an agent's
 capabilities. They follow the progressive disclosure pattern:
 

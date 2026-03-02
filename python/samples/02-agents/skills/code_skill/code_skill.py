@@ -19,7 +19,7 @@ This sample demonstrates how to create Agent Skills in code,
 without needing SKILL.md files on disk. Two patterns are shown:
 
 Pattern 1: Basic Code Skill
-  Create an AgentSkill dataclass directly with static resources (inline content).
+  Create an AgentSkill instance directly with static resources (inline content).
 
 Pattern 2: Dynamic Resources
   Create an AgentSkill and attach callable resources via the @skill.resource

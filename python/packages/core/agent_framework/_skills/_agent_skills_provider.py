@@ -182,9 +182,9 @@ class AgentSkillsProvider(BaseContextProvider):
         super().__init__(source_id or self.DEFAULT_SOURCE_ID)
 
         self._skills = _load_skills(skill_paths, skills, resource_extensions or DEFAULT_RESOURCE_EXTENSIONS)
-        
+
         self._instructions = _create_instructions(instruction_template, self._skills)
-        
+
         self._tools = self._create_tools()
 
     async def before_run(
@@ -443,6 +443,7 @@ def _discover_resource_files(
     skill_dir = Path(skill_dir_path).absolute()
     root_directory_path = str(skill_dir)
     resources: list[str] = []
+    normalized_extensions = {e.lower() for e in extensions}
 
     for resource_file in skill_dir.rglob("*"):
         if not resource_file.is_file():
@@ -451,7 +452,7 @@ def _discover_resource_files(
         if resource_file.name.upper() == SKILL_FILE_NAME.upper():
             continue
 
-        if resource_file.suffix.lower() not in extensions:
+        if resource_file.suffix.lower() not in normalized_extensions:
             continue
 
         resource_full_path = str(Path(os.path.normpath(resource_file)).absolute())
@@ -466,7 +467,7 @@ def _discover_resource_files(
 
         if _has_symlink_in_path(resource_full_path, root_directory_path):
             logger.warning(
-                "Skipping resource '%s': symlink escape detected in skill directory '%s'",
+                "Skipping resource '%s': symlink detected in path under skill directory '%s'",
                 resource_file,
                 skill_dir_path,
             )
@@ -559,9 +560,7 @@ def _extract_frontmatter(
         return None
 
     # name and description are guaranteed non-None after validation
-    assert name is not None
-    assert description is not None
-    return name, description
+    return name, description  # type: ignore[return-value]
 
 
 def _read_and_parse_skill_file(
@@ -663,7 +662,7 @@ def _read_file_skill_resource(skill: AgentSkill, resource_name: str) -> str:
         raise ValueError(f"Resource file '{resource_name}' not found in skill '{skill.name}'.")
 
     if _has_symlink_in_path(resource_full_path, root_directory_path):
-        raise ValueError(f"Resource file '{resource_name}' is a symlink that resolves outside the skill directory.")
+        raise ValueError(f"Resource file '{resource_name}' in skill '{skill.name}' has a symlink in its path; symlinks are not allowed.")
 
     logger.info("Reading resource '%s' from skill '%s'", resource_name, skill.name)
     return Path(resource_full_path).read_text(encoding="utf-8")
@@ -815,14 +814,19 @@ def _create_instructions(
     if prompt_template is not None:
         # Validate that the custom template contains a valid {skills} placeholder
         try:
-            prompt_template.format(skills="")
-            template = prompt_template
-        except (KeyError, IndexError) as exc:
+            result = prompt_template.format(skills="__PROBE__")
+        except (KeyError, IndexError, ValueError) as exc:
             raise ValueError(
                 "The provided instruction_template is not a valid format string. "
-                "It must contain a '{skills}' placeholder and escape any literal '{' or '}' "
+                "It must contain a '{skills}' placeholder and escape any literal"  # noqa: RUF027
+                " '{' or '}' "
                 "by doubling them ('{{' or '}}')."
             ) from exc
+        if "__PROBE__" not in result:
+            raise ValueError(
+                "The provided instruction_template must contain a '{skills}' placeholder."  # noqa: RUF027
+            )
+        template = prompt_template
 
     if not skills:
         return None
