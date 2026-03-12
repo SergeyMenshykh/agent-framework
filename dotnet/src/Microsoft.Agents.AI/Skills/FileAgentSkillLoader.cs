@@ -449,7 +449,7 @@ internal sealed partial class FileAgentSkillLoader
             if (string.IsNullOrWhiteSpace(ext) || !ext.StartsWith(".", StringComparison.Ordinal))
             {
 #pragma warning disable CA2208 // Instantiate argument exceptions correctly
-                throw new ArgumentException($"Each extension must start with '.'. Invalid value: '{ext}'", nameof(FileAgentSkillsProviderOptions.AllowedResourceExtensions));
+                throw new ArgumentException($"Each extension must start with '.'. Invalid value: '{ext}'", "allowedResourceExtensions");
 #pragma warning restore CA2208 // Instantiate argument exceptions correctly
             }
         }
