@@ -36,12 +36,10 @@ public sealed class AgentSkillsProviderBuilder
     /// </summary>
     /// <param name="skillPath">Path to search for skills.</param>
     /// <param name="allowedResourceExtensions">Optional resource extension filter.</param>
-    /// <param name="filter">Optional filter for skills from this source.</param>
     /// <returns>This builder instance for chaining.</returns>
-    public AgentSkillsProviderBuilder AddFileSource(string skillPath, IEnumerable<string>? allowedResourceExtensions = null, Func<AgentSkill, bool>? filter = null)
+    public AgentSkillsProviderBuilder AddFileSource(string skillPath, IEnumerable<string>? allowedResourceExtensions = null)
     {
         var source = new AgentFileSkillsSource(skillPath, allowedResourceExtensions, this._loggerFactory);
-        source.Filter = filter;
         this._sources.Add(source);
         return this;
     }
@@ -51,12 +49,10 @@ public sealed class AgentSkillsProviderBuilder
     /// </summary>
     /// <param name="skillPaths">Paths to search for skills.</param>
     /// <param name="allowedResourceExtensions">Optional resource extension filter.</param>
-    /// <param name="filter">Optional filter for skills from this source.</param>
     /// <returns>This builder instance for chaining.</returns>
-    public AgentSkillsProviderBuilder AddFileSource(IEnumerable<string> skillPaths, IEnumerable<string>? allowedResourceExtensions = null, Func<AgentSkill, bool>? filter = null)
+    public AgentSkillsProviderBuilder AddFileSource(IEnumerable<string> skillPaths, IEnumerable<string>? allowedResourceExtensions = null)
     {
         var source = new AgentFileSkillsSource(skillPaths, allowedResourceExtensions, this._loggerFactory);
-        source.Filter = filter;
         this._sources.Add(source);
         return this;
     }
@@ -76,12 +72,10 @@ public sealed class AgentSkillsProviderBuilder
     /// Adds code-defined skills with an optional source-level filter.
     /// </summary>
     /// <param name="skills">The code-defined skills to add.</param>
-    /// <param name="filter">Optional filter for skills from this source.</param>
     /// <returns>This builder instance for chaining.</returns>
-    public AgentSkillsProviderBuilder AddCodeSkills(IEnumerable<AgentCodeSkill> skills, Func<AgentSkill, bool>? filter = null)
+    public AgentSkillsProviderBuilder AddCodeSkills(IEnumerable<AgentCodeSkill> skills)
     {
         var source = new AgentCodeSkillsSource(skills);
-        source.Filter = filter;
         this._sources.Add(source);
         return this;
     }

@@ -1,6 +1,10 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 
+using System;
+using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.Shared.DiagnosticIds;
 using Microsoft.Shared.Diagnostics;
 
@@ -27,4 +31,13 @@ public sealed class AgentFileSkillScript : AgentSkillScript
     /// Gets the absolute file path to the script.
     /// </summary>
     public string FullPath { get; }
+
+    /// <inheritdoc/>
+    /// <exception cref="NotSupportedException">
+    /// File-based scripts require an external executor and cannot be executed directly.
+    /// </exception>
+    public override Task<string> ExecuteAsync(IDictionary<string, object?> arguments, CancellationToken cancellationToken = default)
+    {
+        throw new NotSupportedException($"File-based script '{this.Name}' at '{this.FullPath}' requires an external executor and cannot be executed directly.");
+    }
 }

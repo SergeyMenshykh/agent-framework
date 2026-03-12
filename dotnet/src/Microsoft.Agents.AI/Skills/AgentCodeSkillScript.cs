@@ -34,7 +34,7 @@ public sealed class AgentCodeSkillScript : AgentSkillScript
     /// <param name="arguments">Arguments for script execution.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>The script result as a string.</returns>
-    public Task<string> ExecuteAsync(IDictionary<string, object?> arguments, CancellationToken cancellationToken = default)
+    public override Task<string> ExecuteAsync(IDictionary<string, object?> arguments, CancellationToken cancellationToken = default)
     {
         return this._handler(arguments, cancellationToken);
     }

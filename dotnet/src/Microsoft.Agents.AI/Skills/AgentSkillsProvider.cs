@@ -160,7 +160,22 @@ public sealed partial class AgentSkillsProvider : AIContextProvider
 
         try
         {
-            return await this._source.ReadResourceAsync(skill, resourceName, cancellationToken).ConfigureAwait(false);
+            AgentSkillResource? resource = null;
+            foreach (var r in skill.Resources)
+            {
+                if (string.Equals(r.Name, resourceName, StringComparison.OrdinalIgnoreCase))
+                {
+                    resource = r;
+                    break;
+                }
+            }
+
+            if (resource == null)
+            {
+                return $"Error: Resource '{resourceName}' not found in skill '{skillName}'.";
+            }
+
+            return await resource.ReadAsync(cancellationToken).ConfigureAwait(false);
         }
         catch (Exception ex)
         {
@@ -210,7 +225,7 @@ public sealed partial class AgentSkillsProvider : AIContextProvider
 
         try
         {
-            return await this._source.ExecuteScriptAsync(skill, script, arguments, cancellationToken).ConfigureAwait(false);
+            return await script.ExecuteAsync(arguments, cancellationToken).ConfigureAwait(false);
         }
         catch (Exception ex)
         {
