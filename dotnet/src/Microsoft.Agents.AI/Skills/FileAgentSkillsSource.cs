@@ -16,32 +16,32 @@ namespace Microsoft.Agents.AI;
 /// A skill source that discovers skills from filesystem directories containing SKILL.md files.
 /// </summary>
 [Experimental(DiagnosticIds.Experiments.AgentsAIExperiments)]
-public sealed class AgentFileSkillsSource : AgentSkillsSource
+public sealed class FileAgentSkillsSource : AgentSkillsSource
 {
     private readonly IReadOnlyList<AgentFileSkill> _skills;
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="AgentFileSkillsSource"/> class.
+    /// Initializes a new instance of the <see cref="FileAgentSkillsSource"/> class.
     /// </summary>
     /// <param name="skillPath">Path to search for skills.</param>
     /// <param name="allowedResourceExtensions">Optional resource extension filter.</param>
     /// <param name="loggerFactory">Optional logger factory.</param>
-    public AgentFileSkillsSource(string skillPath, IEnumerable<string>? allowedResourceExtensions = null, ILoggerFactory? loggerFactory = null)
+    public FileAgentSkillsSource(string skillPath, IEnumerable<string>? allowedResourceExtensions = null, ILoggerFactory? loggerFactory = null)
         : this(new[] { skillPath }, allowedResourceExtensions, loggerFactory)
     {
     }
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="AgentFileSkillsSource"/> class.
+    /// Initializes a new instance of the <see cref="FileAgentSkillsSource"/> class.
     /// </summary>
     /// <param name="skillPaths">Paths to search for skills.</param>
     /// <param name="allowedResourceExtensions">Optional resource extension filter.</param>
     /// <param name="loggerFactory">Optional logger factory.</param>
-    public AgentFileSkillsSource(IEnumerable<string> skillPaths, IEnumerable<string>? allowedResourceExtensions = null, ILoggerFactory? loggerFactory = null)
+    public FileAgentSkillsSource(IEnumerable<string> skillPaths, IEnumerable<string>? allowedResourceExtensions = null, ILoggerFactory? loggerFactory = null)
     {
         _ = Throw.IfNull(skillPaths);
 
-        var logger = (loggerFactory ?? NullLoggerFactory.Instance).CreateLogger<AgentFileSkillsSource>();
+        var logger = (loggerFactory ?? NullLoggerFactory.Instance).CreateLogger<FileAgentSkillsSource>();
         var loader = new FileAgentSkillLoader(logger, allowedResourceExtensions);
 
         var internalSkills = loader.DiscoverAndLoadSkills(skillPaths);

@@ -15,15 +15,15 @@ namespace Microsoft.Agents.AI;
 /// A composite skill source that aggregates multiple child sources.
 /// </summary>
 [Experimental(DiagnosticIds.Experiments.AgentsAIExperiments)]
-public sealed class AgentCompositeSkillsSource : AgentSkillsSource
+public sealed class CompositeAgentSkillsSource : AgentSkillsSource
 {
     private readonly IReadOnlyList<AgentSkillsSource> _sources;
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="AgentCompositeSkillsSource"/> class.
+    /// Initializes a new instance of the <see cref="CompositeAgentSkillsSource"/> class.
     /// </summary>
     /// <param name="sources">The child sources to aggregate.</param>
-    public AgentCompositeSkillsSource(IEnumerable<AgentSkillsSource> sources)
+    public CompositeAgentSkillsSource(IEnumerable<AgentSkillsSource> sources)
     {
         _ = Throw.IfNull(sources);
         this._sources = sources.ToList();

@@ -39,7 +39,7 @@ public sealed class AgentSkillsProviderBuilder
     /// <returns>This builder instance for chaining.</returns>
     public AgentSkillsProviderBuilder AddFileSource(string skillPath, IEnumerable<string>? allowedResourceExtensions = null)
     {
-        var source = new AgentFileSkillsSource(skillPath, allowedResourceExtensions, this._loggerFactory);
+        var source = new FileAgentSkillsSource(skillPath, allowedResourceExtensions, this._loggerFactory);
         this._sources.Add(source);
         return this;
     }
@@ -52,7 +52,7 @@ public sealed class AgentSkillsProviderBuilder
     /// <returns>This builder instance for chaining.</returns>
     public AgentSkillsProviderBuilder AddFileSource(IEnumerable<string> skillPaths, IEnumerable<string>? allowedResourceExtensions = null)
     {
-        var source = new AgentFileSkillsSource(skillPaths, allowedResourceExtensions, this._loggerFactory);
+        var source = new FileAgentSkillsSource(skillPaths, allowedResourceExtensions, this._loggerFactory);
         this._sources.Add(source);
         return this;
     }
@@ -64,7 +64,7 @@ public sealed class AgentSkillsProviderBuilder
     /// <returns>This builder instance for chaining.</returns>
     public AgentSkillsProviderBuilder AddCodeSkills(params AgentCodeSkill[] skills)
     {
-        this._sources.Add(new AgentCodeSkillsSource(skills));
+        this._sources.Add(new CodeAgentSkillsSource(skills));
         return this;
     }
 
@@ -75,7 +75,7 @@ public sealed class AgentSkillsProviderBuilder
     /// <returns>This builder instance for chaining.</returns>
     public AgentSkillsProviderBuilder AddCodeSkills(IEnumerable<AgentCodeSkill> skills)
     {
-        var source = new AgentCodeSkillsSource(skills);
+        var source = new CodeAgentSkillsSource(skills);
         this._sources.Add(source);
         return this;
     }
@@ -87,7 +87,7 @@ public sealed class AgentSkillsProviderBuilder
     /// <returns>This builder instance for chaining.</returns>
     public AgentSkillsProviderBuilder AddClassSkills(params AgentClassSkill[] skills)
     {
-        this._sources.Add(new AgentClassSkillsSource(skills));
+        this._sources.Add(new ClassAgentSkillsSource(skills));
         return this;
     }
 
@@ -159,7 +159,7 @@ public sealed class AgentSkillsProviderBuilder
         }
         else
         {
-            source = new AgentCompositeSkillsSource(this._sources);
+            source = new CompositeAgentSkillsSource(this._sources);
         }
 
         return new AgentSkillsProvider(source, this._options, this._loggerFactory);

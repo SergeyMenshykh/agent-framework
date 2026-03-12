@@ -14,15 +14,15 @@ namespace Microsoft.Agents.AI;
 /// A skill source that holds class-based <see cref="AgentClassSkill"/> instances.
 /// </summary>
 [Experimental(DiagnosticIds.Experiments.AgentsAIExperiments)]
-public sealed class AgentClassSkillsSource : AgentSkillsSource
+public sealed class ClassAgentSkillsSource : AgentSkillsSource
 {
     private readonly IReadOnlyList<AgentClassSkill> _skills;
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="AgentClassSkillsSource"/> class.
+    /// Initializes a new instance of the <see cref="ClassAgentSkillsSource"/> class.
     /// </summary>
     /// <param name="skills">The class-based skills to include in this source.</param>
-    public AgentClassSkillsSource(IEnumerable<AgentClassSkill> skills)
+    public ClassAgentSkillsSource(IEnumerable<AgentClassSkill> skills)
     {
         _ = Throw.IfNull(skills);
         this._skills = skills.ToList();

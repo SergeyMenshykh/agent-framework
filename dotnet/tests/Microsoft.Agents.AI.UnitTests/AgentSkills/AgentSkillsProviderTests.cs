@@ -10,14 +10,14 @@ using Microsoft.Extensions.AI;
 namespace Microsoft.Agents.AI.UnitTests.AgentSkills;
 
 /// <summary>
-/// Unit tests for the <see cref="AgentSkillsProvider"/> class with <see cref="AgentFileSkillsSource"/>.
+/// Unit tests for the <see cref="AgentSkillsProvider"/> class with <see cref="FileAgentSkillsSource"/>.
 /// </summary>
-public sealed class FileAgentSkillsProviderTests : IDisposable
+public sealed class AgentSkillsProviderTests : IDisposable
 {
     private readonly string _testRoot;
     private readonly TestAIAgent _agent = new();
 
-    public FileAgentSkillsProviderTests()
+    public AgentSkillsProviderTests()
     {
         this._testRoot = Path.Combine(Path.GetTempPath(), "skills-provider-tests-" + Guid.NewGuid().ToString("N"));
         Directory.CreateDirectory(this._testRoot);
@@ -35,7 +35,7 @@ public sealed class FileAgentSkillsProviderTests : IDisposable
     public async Task InvokingCoreAsync_NoSkills_ReturnsInputContextUnchangedAsync()
     {
         // Arrange
-        var provider = new AgentSkillsProvider(new AgentFileSkillsSource(this._testRoot));
+        var provider = new AgentSkillsProvider(new FileAgentSkillsSource(this._testRoot));
         var inputContext = new AIContext { Instructions = "Original instructions" };
         var invokingContext = new AIContextProvider.InvokingContext(this._agent, session: null, inputContext);
 
@@ -52,7 +52,7 @@ public sealed class FileAgentSkillsProviderTests : IDisposable
     {
         // Arrange
         this.CreateSkill("provider-skill", "Provider skill test", "Skill instructions body.");
-        var provider = new AgentSkillsProvider(new AgentFileSkillsSource(this._testRoot));
+        var provider = new AgentSkillsProvider(new FileAgentSkillsSource(this._testRoot));
         var inputContext = new AIContext { Instructions = "Base instructions" };
         var invokingContext = new AIContextProvider.InvokingContext(this._agent, session: null, inputContext);
 
@@ -77,7 +77,7 @@ public sealed class FileAgentSkillsProviderTests : IDisposable
     {
         // Arrange
         this.CreateSkill("null-instr-skill", "Null instruction test", "Body.");
-        var provider = new AgentSkillsProvider(new AgentFileSkillsSource(this._testRoot));
+        var provider = new AgentSkillsProvider(new FileAgentSkillsSource(this._testRoot));
         var inputContext = new AIContext();
         var invokingContext = new AIContextProvider.InvokingContext(this._agent, session: null, inputContext);
 
@@ -98,7 +98,7 @@ public sealed class FileAgentSkillsProviderTests : IDisposable
         {
             SkillsInstructionPrompt = "Custom template: {0}"
         };
-        var provider = new AgentSkillsProvider(new AgentFileSkillsSource(this._testRoot), options);
+        var provider = new AgentSkillsProvider(new FileAgentSkillsSource(this._testRoot), options);
         var inputContext = new AIContext();
         var invokingContext = new AIContextProvider.InvokingContext(this._agent, session: null, inputContext);
 
@@ -121,7 +121,7 @@ public sealed class FileAgentSkillsProviderTests : IDisposable
         File.WriteAllText(
             Path.Combine(skillDir, "SKILL.md"),
             "---\nname: xml-skill\ndescription: Uses <tags> & \"quotes\"\n---\nBody.");
-        var provider = new AgentSkillsProvider(new AgentFileSkillsSource(this._testRoot));
+        var provider = new AgentSkillsProvider(new FileAgentSkillsSource(this._testRoot));
         var inputContext = new AIContext();
         var invokingContext = new AIContextProvider.InvokingContext(this._agent, session: null, inputContext);
 
@@ -144,7 +144,7 @@ public sealed class FileAgentSkillsProviderTests : IDisposable
         CreateSkillIn(dir2, "skill-b", "Skill B", "Body B.");
 
         // Act
-        var provider = new AgentSkillsProvider(new AgentFileSkillsSource(new[] { dir1, dir2 }));
+        var provider = new AgentSkillsProvider(new FileAgentSkillsSource(new[] { dir1, dir2 }));
         var invokingContext = new AIContextProvider.InvokingContext(this._agent, session: null, new AIContext());
 
         // Assert
@@ -159,7 +159,7 @@ public sealed class FileAgentSkillsProviderTests : IDisposable
     {
         // Arrange
         this.CreateSkill("tools-skill", "Tools test", "Body.");
-        var provider = new AgentSkillsProvider(new AgentFileSkillsSource(this._testRoot));
+        var provider = new AgentSkillsProvider(new FileAgentSkillsSource(this._testRoot));
 
         var existingTool = AIFunctionFactory.Create(() => "test", name: "existing_tool", description: "An existing tool.");
         var inputContext = new AIContext { Tools = new[] { existingTool } };
@@ -183,7 +183,7 @@ public sealed class FileAgentSkillsProviderTests : IDisposable
         this.CreateSkill("zulu-skill", "Zulu skill", "Body Z.");
         this.CreateSkill("alpha-skill", "Alpha skill", "Body A.");
         this.CreateSkill("mike-skill", "Mike skill", "Body M.");
-        var provider = new AgentSkillsProvider(new AgentFileSkillsSource(this._testRoot));
+        var provider = new AgentSkillsProvider(new FileAgentSkillsSource(this._testRoot));
         var inputContext = new AIContext();
         var invokingContext = new AIContextProvider.InvokingContext(this._agent, session: null, inputContext);
 
