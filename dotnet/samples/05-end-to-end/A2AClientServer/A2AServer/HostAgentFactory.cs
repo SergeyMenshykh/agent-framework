@@ -60,7 +60,7 @@ internal static class HostAgentFactory
             PushNotifications = false,
         };
 
-        var invoiceQuery = new AgentSkill()
+        var invoiceQuery = new A2A.AgentSkill()
         {
             Id = "id_invoice_agent",
             Name = "InvoiceQuery",
@@ -92,7 +92,7 @@ internal static class HostAgentFactory
             PushNotifications = false,
         };
 
-        var policyQuery = new AgentSkill()
+        var policyQuery = new A2A.AgentSkill()
         {
             Id = "id_policy_agent",
             Name = "PolicyAgent",
@@ -124,7 +124,7 @@ internal static class HostAgentFactory
             PushNotifications = false,
         };
 
-        var logisticsQuery = new AgentSkill()
+        var logisticsQuery = new A2A.AgentSkill()
         {
             Id = "id_logistics_agent",
             Name = "LogisticsQuery",

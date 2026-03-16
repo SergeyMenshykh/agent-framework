@@ -462,6 +462,7 @@ public sealed class FileAgentSkillLoaderTests : IDisposable
         // Manually construct a skill with the traversal resource in its list to bypass discovery validation
         var tampered = new FileAgentSkill(
             skill.Frontmatter,
+            skill.Content,
             skill.Body,
             skill.SourcePath,
             s_traversalResource);
@@ -627,6 +628,7 @@ public sealed class FileAgentSkillLoaderTests : IDisposable
         var frontmatter = new SkillFrontmatter("symlink-read-skill", "A skill");
         var skill = new FileAgentSkill(
             frontmatter: frontmatter,
+            content: "---\nname: symlink-read-skill\ndescription: A skill\n---\nSee [doc](refs/data.md).",
             body: "See [doc](refs/data.md).",
             sourcePath: skillDir,
             resourceNames: s_symlinkResource);
