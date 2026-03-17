@@ -31,7 +31,7 @@ namespace Microsoft.Agents.AI;
 ///
 ///     public override IReadOnlyList&lt;AgentSkillScript&gt;? Scripts { get; } =
 ///     [
-///         new AgentCodeSkillScript(FormatPdf),
+///         new AgentCodeSkillScript(FormatPdf, "format-pdf"),
 ///     ];
 ///
 ///     private static string FormatPdf(string content) =&gt; content;

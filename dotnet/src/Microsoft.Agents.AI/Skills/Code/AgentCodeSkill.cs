@@ -15,7 +15,7 @@ namespace Microsoft.Agents.AI;
 /// </summary>
 /// <remarks>
 /// Use <see cref="AddResource(string, object?)"/>, <see cref="AddResource(string, Func{CancellationToken, Task{object}})"/>,
-/// and <see cref="AddScript(Delegate, string?)"/> to register resources and scripts after construction.
+/// and <see cref="AddScript(Delegate, string)"/> to register resources and scripts after construction.
 /// </remarks>
 [Experimental(DiagnosticIds.Experiments.AgentsAIExperiments)]
 public sealed class AgentCodeSkill : AgentSkill
@@ -87,9 +87,9 @@ public sealed class AgentCodeSkill : AgentSkill
     /// The delegate's parameters and return type are automatically marshaled via <c>AIFunctionFactory</c>.
     /// </summary>
     /// <param name="handler">A method to execute when the script is invoked.</param>
-    /// <param name="name">Optional script name. Defaults to the method name.</param>
+    /// <param name="name">The script name.</param>
     /// <returns>This instance, for chaining.</returns>
-    public AgentCodeSkill AddScript(Delegate handler, string? name = null)
+    public AgentCodeSkill AddScript(Delegate handler, string name)
     {
         this._scripts.Add(new AgentCodeSkillScript(handler, name));
         return this;

@@ -53,7 +53,7 @@ public sealed class UnitConverterSkill : AgentClassSkill
     /// <inheritdoc/>
     public override IReadOnlyList<AgentSkillScript>? Scripts { get; } =
     [
-        new AgentCodeSkillScript(ConvertUnits),
+        new AgentCodeSkillScript(ConvertUnits, "convert"),
     ];
 
     private static string ConvertUnits(double value, double factor)

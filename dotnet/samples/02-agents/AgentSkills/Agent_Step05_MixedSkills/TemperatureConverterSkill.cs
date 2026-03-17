@@ -48,7 +48,7 @@ public sealed class TemperatureConverterSkill : AgentClassSkill
     /// <inheritdoc/>
     public override IReadOnlyList<AgentSkillScript>? Scripts { get; } =
     [
-        new AgentCodeSkillScript(ConvertTemperature),
+        new AgentCodeSkillScript(ConvertTemperature, "convert"),
     ];
 
     private static string ConvertTemperature(double value, string from, string to)

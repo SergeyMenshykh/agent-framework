@@ -60,13 +60,11 @@ var unitConverterSkill = new AgentCodeSkill(
             return Task.FromResult<object?>(result);
         })
     // 3. Code Script: convert
-    .AddScript(Convert);
-
-static string Convert(double value, double factor)
-{
-    double result = Math.Round(value * factor, 4);
-    return JsonSerializer.Serialize(new { value, factor, result });
-}
+    .AddScript((double value, double factor) =>
+    {
+        double result = Math.Round(value * factor, 4);
+        return JsonSerializer.Serialize(new { value, factor, result });
+    }, "convert");
 
 // --- Skills Provider ---
 var skillsProvider = new AgentSkillsProviderBuilder()

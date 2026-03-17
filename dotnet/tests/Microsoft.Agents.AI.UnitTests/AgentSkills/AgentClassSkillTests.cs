@@ -148,7 +148,7 @@ public sealed class AgentClassSkillTests
 
         public override IReadOnlyList<AgentSkillScript>? Scripts { get; } =
         [
-            new AgentCodeSkillScript(TestScript),
+            new AgentCodeSkillScript(TestScript, "TestScript"),
         ];
 
         private static string TestScript(double value) =>
@@ -179,7 +179,7 @@ public sealed class AgentClassSkillTests
 
         public override IReadOnlyList<AgentSkillScript>? Scripts { get; } =
         [
-            new AgentCodeSkillScript((string input) => input.ToUpperInvariant()),
+            new AgentCodeSkillScript((string input) => input.ToUpperInvariant(), "ToUpper"),
         ];
     }
 

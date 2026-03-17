@@ -39,7 +39,7 @@ var volumeConverterSkill = new AgentCodeSkill(
         | gallons | liters  | 3.78541 |
         | liters  | gallons | 0.264172|
         """)
-    .AddScript(ConvertVolume);
+    .AddScript(ConvertVolume, "convert");
 
 static string ConvertVolume(double value, double factor)
 {

@@ -7,6 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.AI;
 using Microsoft.Shared.DiagnosticIds;
+using Microsoft.Shared.Diagnostics;
 
 namespace Microsoft.Agents.AI;
 
@@ -19,7 +20,7 @@ namespace Microsoft.Agents.AI;
 /// The framework uses <see cref="AIFunctionFactory"/> to handle parameter marshaling automatically:
 /// </para>
 /// <code>
-/// new AgentCodeSkillScript(Convert);
+/// new AgentCodeSkillScript(Convert, "convert");
 ///
 /// static string Convert(double value, double factor)
 ///     =&gt; JsonSerializer.Serialize(new { result = Math.Round(value * factor, 4) });
@@ -35,10 +36,11 @@ public sealed class AgentCodeSkillScript : AgentSkillScript
     /// The delegate's parameters and return type are automatically marshaled via <see cref="AIFunctionFactory"/>.
     /// </summary>
     /// <param name="handler">A method to execute when the script is invoked. Parameters are automatically deserialized from JSON.</param>
-    /// <param name="name">Optional script name. Defaults to the method name.</param>
-    public AgentCodeSkillScript(Delegate handler, string? name = null)
-        : base(name ?? (handler ?? throw new ArgumentNullException(nameof(handler))).Method.Name)
+    /// <param name="name">The script name.</param>
+    public AgentCodeSkillScript(Delegate handler, string name)
+        : base(Throw.IfNullOrWhitespace(name))
     {
+        Throw.IfNull(handler);
         this._function = AIFunctionFactory.Create(handler, name: this.Name);
     }
 
