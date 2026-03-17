@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 
 using System;
-using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Text.Json;
 using System.Threading;
@@ -44,29 +43,6 @@ public sealed class AgentCodeSkillScript : AgentSkillScript
     {
         Throw.IfNull(handler);
         this._function = AIFunctionFactory.Create(handler, name: this.Name);
-    }
-
-    /// <summary>
-    /// Initializes a new instance of the <see cref="AgentCodeSkillScript"/> class with a raw handler delegate.
-    /// </summary>
-    /// <param name="name">The script name.</param>
-    /// <param name="handler">The delegate that executes the script logic.</param>
-    /// <param name="description">An optional description of the script.</param>
-    /// <remarks>
-    /// Prefer the <see cref="AgentCodeSkillScript(Delegate, string, string?)"/> constructor which provides
-    /// automatic parameter marshaling. This constructor requires manual argument handling.
-    /// </remarks>
-    public AgentCodeSkillScript(string name, Func<IDictionary<string, object?>, CancellationToken, Task<string>> handler, string? description = null)
-        : base(name, description)
-    {
-        if (handler == null)
-        {
-            throw new ArgumentNullException(nameof(handler));
-        }
-
-        this._function = AIFunctionFactory.Create(
-            (AIFunctionArguments arguments, CancellationToken cancellationToken) => handler(arguments, cancellationToken),
-            name: name);
     }
 
     /// <summary>
