@@ -24,11 +24,11 @@ var volumeConverterSkill = new AgentCodeSkill(
     instructions: """
         Use this skill when the user asks to convert between gallons and liters.
 
-        1. Review the conversion-table resource to find the correct factor.
+        1. Review the volume-conversion-table resource to find the correct factor.
         2. Use the convert-volume script, passing the value and factor.
         """)
     .AddResource(
-        "conversion-table",
+        "volume-conversion-table",
         """
         # Volume Conversion Table
 
