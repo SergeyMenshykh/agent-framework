@@ -85,17 +85,17 @@ internal sealed partial class FileAgentSkillLoader
                 continue;
             }
 
-            if (skills.TryGetValue(skill.Frontmatter.Name, out FileAgentSkill? existing))
+            if (skills.TryGetValue(skill.Name, out FileAgentSkill? existing))
             {
-                LogDuplicateSkillName(this._logger, skill.Frontmatter.Name, skillPath, existing.SourcePath);
+                LogDuplicateSkillName(this._logger, skill.Name, skillPath, existing.SourcePath);
 
                 // Skip duplicate skill names, keeping the first one found.
                 continue;
             }
 
-            skills[skill.Frontmatter.Name] = skill;
+            skills[skill.Name] = skill;
 
-            LogSkillLoaded(this._logger, skill.Frontmatter.Name);
+            LogSkillLoaded(this._logger, skill.Name);
         }
 
         LogSkillsLoadedTotal(this._logger, skills.Count);
@@ -119,7 +119,7 @@ internal sealed partial class FileAgentSkillLoader
 
         if (!skill.ResourceNames.Any(r => r.Equals(resourceName, StringComparison.OrdinalIgnoreCase)))
         {
-            throw new InvalidOperationException($"Resource '{resourceName}' not found in skill '{skill.Frontmatter.Name}'.");
+            throw new InvalidOperationException($"Resource '{resourceName}' not found in skill '{skill.Name}'.");
         }
 
         string fullPath = Path.GetFullPath(Path.Combine(skill.SourcePath, resourceName));
@@ -132,7 +132,7 @@ internal sealed partial class FileAgentSkillLoader
 
         if (!File.Exists(fullPath))
         {
-            throw new InvalidOperationException($"Resource file '{resourceName}' not found in skill '{skill.Frontmatter.Name}'.");
+            throw new InvalidOperationException($"Resource file '{resourceName}' not found in skill '{skill.Name}'.");
         }
 
         if (HasSymlinkInPath(fullPath, normalizedSourcePath))
@@ -140,7 +140,7 @@ internal sealed partial class FileAgentSkillLoader
             throw new InvalidOperationException($"Resource file '{resourceName}' is a symlink that resolves outside the skill directory.");
         }
 
-        LogResourceReading(this._logger, resourceName, skill.Frontmatter.Name);
+        LogResourceReading(this._logger, resourceName, skill.Name);
 
 #if NET
         return await File.ReadAllTextAsync(fullPath, Encoding.UTF8, cancellationToken).ConfigureAwait(false);
@@ -191,24 +191,26 @@ internal sealed partial class FileAgentSkillLoader
 
         string content = File.ReadAllText(skillFilePath, Encoding.UTF8);
 
-        if (!this.TryParseSkillDocument(content, skillFilePath, out SkillFrontmatter frontmatter, out string body))
+        if (!this.TryParseSkillDocument(content, skillFilePath, out string name, out string description, out string body))
         {
             return null;
         }
 
-        List<string> resourceNames = this.DiscoverResourceFiles(skillDirectoryFullPath, frontmatter.Name);
+        List<string> resourceNames = this.DiscoverResourceFiles(skillDirectoryFullPath, name);
 
         return new FileAgentSkill(
-            frontmatter: frontmatter,
+            name: name,
+            description: description,
             content: content,
             body: body,
             sourcePath: skillDirectoryFullPath,
             resourceNames: resourceNames);
     }
 
-    private bool TryParseSkillDocument(string content, string skillFilePath, out SkillFrontmatter frontmatter, out string body)
+    private bool TryParseSkillDocument(string content, string skillFilePath, out string name, out string description, out string body)
     {
-        frontmatter = null!;
+        name = null!;
+        description = null!;
         body = null!;
 
         Match match = s_frontmatterRegex.Match(content);
@@ -217,9 +219,6 @@ internal sealed partial class FileAgentSkillLoader
             LogInvalidFrontmatter(this._logger, skillFilePath);
             return false;
         }
-
-        string? name = null;
-        string? description = null;
 
         string yamlContent = match.Groups[1].Value.Trim();
 
@@ -277,7 +276,6 @@ internal sealed partial class FileAgentSkillLoader
             return false;
         }
 
-        frontmatter = new SkillFrontmatter(name, description);
         body = content.Substring(match.Index + match.Length).TrimStart();
 
         return true;

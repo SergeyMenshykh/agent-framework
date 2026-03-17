@@ -45,7 +45,7 @@ public sealed class FileAgentSkillLoaderTests : IDisposable
         // Assert
         Assert.Single(skills);
         Assert.True(skills.ContainsKey("my-skill"));
-        Assert.Equal("A test skill", skills["my-skill"].Frontmatter.Description);
+        Assert.Equal("A test skill", skills["my-skill"].Description);
         Assert.Equal("Use this skill to do things.", skills["my-skill"].Body);
     }
 
@@ -64,8 +64,8 @@ public sealed class FileAgentSkillLoaderTests : IDisposable
 
         // Assert
         Assert.Single(skills);
-        Assert.Equal("quoted-skill", skills["quoted-skill"].Frontmatter.Name);
-        Assert.Equal("A quoted description", skills["quoted-skill"].Frontmatter.Description);
+        Assert.Equal("quoted-skill", skills["quoted-skill"].Name);
+        Assert.Equal("A quoted description", skills["quoted-skill"].Description);
     }
 
     [Fact]
@@ -169,7 +169,7 @@ public sealed class FileAgentSkillLoaderTests : IDisposable
         // Assert – filesystem enumeration order is not guaranteed, so we only
         // verify that exactly one of the two duplicates was kept.
         Assert.Single(skills);
-        string desc = skills["dupe"].Frontmatter.Description;
+        string desc = skills["dupe"].Description;
         Assert.True(desc == "First" || desc == "Second", $"Unexpected description: {desc}");
     }
 
@@ -461,11 +461,12 @@ public sealed class FileAgentSkillLoaderTests : IDisposable
 
         // Manually construct a skill with the traversal resource in its list to bypass discovery validation
         var tampered = new FileAgentSkill(
-            skill.Frontmatter,
+            skill.Name,
+            skill.Description,
             skill.Content,
             skill.Body,
             skill.SourcePath,
-            s_traversalResource);
+            resourceNames: s_traversalResource);
 
         // Act & Assert
         await Assert.ThrowsAsync<InvalidOperationException>(
@@ -625,9 +626,9 @@ public sealed class FileAgentSkillLoaderTests : IDisposable
         }
 
         // Manually construct a skill that bypasses discovery validation
-        var frontmatter = new SkillFrontmatter("symlink-read-skill", "A skill");
         var skill = new FileAgentSkill(
-            frontmatter: frontmatter,
+            name: "symlink-read-skill",
+            description: "A skill",
             content: "---\nname: symlink-read-skill\ndescription: A skill\n---\nSee [doc](refs/data.md).",
             body: "See [doc](refs/data.md).",
             sourcePath: skillDir,
@@ -653,7 +654,7 @@ public sealed class FileAgentSkillLoaderTests : IDisposable
         // Assert
         Assert.Single(skills);
         Assert.True(skills.ContainsKey("bom-skill"));
-        Assert.Equal("Skill with BOM", skills["bom-skill"].Frontmatter.Description);
+        Assert.Equal("Skill with BOM", skills["bom-skill"].Description);
         Assert.Equal("Body content.", skills["bom-skill"].Body);
     }
 

@@ -91,7 +91,7 @@ public sealed partial class FileAgentSkillsSource : AgentSkillsSource
                 resources.Add(new AgentFileSkillResource(resourceName, fullPath));
             }
 
-            List<string> scriptNames = DiscoverScriptFiles(kvp.Value.SourcePath, kvp.Value.Frontmatter.Name, this._scriptExtensionsSet, this._logger);
+            List<string> scriptNames = DiscoverScriptFiles(kvp.Value.SourcePath, kvp.Value.Name, this._scriptExtensionsSet, this._logger);
             var scripts = new List<AgentSkillScript>(scriptNames.Count);
             foreach (string scriptName in scriptNames)
             {
@@ -100,8 +100,8 @@ public sealed partial class FileAgentSkillsSource : AgentSkillsSource
             }
 
             var agentSkill = new AgentFileSkill(
-                kvp.Value.Frontmatter.Name,
-                kvp.Value.Frontmatter.Description,
+                kvp.Value.Name,
+                kvp.Value.Description,
                 kvp.Value.Content,
                 kvp.Value.Body,
                 kvp.Value.SourcePath,

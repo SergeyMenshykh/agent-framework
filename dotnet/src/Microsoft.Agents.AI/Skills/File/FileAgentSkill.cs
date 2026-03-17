@@ -18,19 +18,22 @@ internal sealed class FileAgentSkill
     /// <summary>
     /// Initializes a new instance of the <see cref="FileAgentSkill"/> class.
     /// </summary>
-    /// <param name="frontmatter">Parsed YAML frontmatter (name and description).</param>
+    /// <param name="name">Skill name parsed from YAML frontmatter.</param>
+    /// <param name="description">Skill description parsed from YAML frontmatter.</param>
     /// <param name="content">The full raw SKILL.md file content including YAML frontmatter.</param>
     /// <param name="body">The SKILL.md content after the closing <c>---</c> delimiter.</param>
     /// <param name="sourcePath">Absolute path to the directory containing this skill.</param>
     /// <param name="resourceNames">Relative paths of resource files referenced in the skill body.</param>
     public FileAgentSkill(
-        SkillFrontmatter frontmatter,
+        string name,
+        string description,
         string content,
         string body,
         string sourcePath,
         IReadOnlyList<string>? resourceNames = null)
     {
-        this.Frontmatter = Throw.IfNull(frontmatter);
+        this.Name = Throw.IfNullOrWhitespace(name);
+        this.Description = Throw.IfNullOrWhitespace(description);
         this.Content = Throw.IfNull(content);
         this.Body = Throw.IfNull(body);
         this.SourcePath = Throw.IfNullOrWhitespace(sourcePath);
@@ -38,9 +41,14 @@ internal sealed class FileAgentSkill
     }
 
     /// <summary>
-    /// Gets the parsed YAML frontmatter (name and description).
+    /// Gets the skill name. Lowercase letters, numbers, and hyphens only.
     /// </summary>
-    public SkillFrontmatter Frontmatter { get; }
+    public string Name { get; }
+
+    /// <summary>
+    /// Gets the skill description. Used for discovery in the system prompt.
+    /// </summary>
+    public string Description { get; }
 
     /// <summary>
     /// Gets the full raw SKILL.md file content including YAML frontmatter.
