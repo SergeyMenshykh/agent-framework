@@ -25,7 +25,7 @@ var volumeConverterSkill = new AgentCodeSkill(
         Use this skill when the user asks to convert between gallons and liters.
 
         1. Review the conversion-table resource to find the correct factor.
-        2. Use the convert script, passing the value and factor.
+        2. Use the convert-volume script, passing the value and factor.
         """)
     .AddResource(
         "conversion-table",
@@ -43,7 +43,7 @@ var volumeConverterSkill = new AgentCodeSkill(
     {
         double result = Math.Round(value * factor, 4);
         return JsonSerializer.Serialize(new { value, factor, result });
-    }, "convert");
+    }, "convert-volume");
 
 // --- 2. Class-Based Skill: temperature-converter ---
 var temperatureConverter = new Agent_Step05_MixedSkills.TemperatureConverterSkill();
@@ -53,6 +53,7 @@ var skillsProvider = new AgentSkillsProviderBuilder()
     .AddFileSkills(Path.Combine(AppContext.BaseDirectory, "skills"))    // File-based: unit-converter
     .AddCodeSkills(volumeConverterSkill)                                // Code-defined: volume-converter
     .AddClassSkills(temperatureConverter)                               // Class-based: temperature-converter
+    .WithFileScriptExecutor(SubprocessScriptExecutor.ExecuteAsync)
     .Build();
 
 // --- Agent Setup ---

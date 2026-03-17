@@ -15,7 +15,7 @@ This sample demonstrates how to use **file-based Agent Skills** with a `ChatClie
 
 Converts between common units (miles↔km, pounds↔kg) using a multiplication factor.
 
-- `references/CONVERSION_TABLES.md` — Conversion factor table
+- `references/conversion-table.md` — Conversion factor table
 - `scripts/convert.py` — Python script that performs the conversion
 
 ## Running the Sample

@@ -22,7 +22,7 @@ public sealed class TemperatureConverterSkill : AgentClassSkill
         Use this skill when the user asks to convert temperatures.
 
         1. Review the conversion-formulas resource for the correct formula.
-        2. Use the convert script, passing the value, source scale, and target scale.
+        2. Use the convert-temperature script, passing the value, source scale, and target scale.
         3. Present the result clearly with both temperature scales.
         """;
 
@@ -46,7 +46,7 @@ public sealed class TemperatureConverterSkill : AgentClassSkill
     /// <inheritdoc/>
     public override IReadOnlyList<AgentSkillScript>? Scripts { get; } =
     [
-        new AgentCodeSkillScript(ConvertTemperature, "convert"),
+        new AgentCodeSkillScript(ConvertTemperature, "convert-temperature"),
     ];
 
     private static string ConvertTemperature(double value, string from, string to)
