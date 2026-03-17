@@ -21,21 +21,18 @@ internal sealed class FileAgentSkill
     /// <param name="name">Skill name parsed from YAML frontmatter.</param>
     /// <param name="description">Skill description parsed from YAML frontmatter.</param>
     /// <param name="content">The full raw SKILL.md file content including YAML frontmatter.</param>
-    /// <param name="body">The SKILL.md content after the closing <c>---</c> delimiter.</param>
     /// <param name="sourcePath">Absolute path to the directory containing this skill.</param>
     /// <param name="resourceNames">Relative paths of resource files referenced in the skill body.</param>
     public FileAgentSkill(
         string name,
         string description,
         string content,
-        string body,
         string sourcePath,
         IReadOnlyList<string>? resourceNames = null)
     {
         this.Name = Throw.IfNullOrWhitespace(name);
         this.Description = Throw.IfNullOrWhitespace(description);
         this.Content = Throw.IfNull(content);
-        this.Body = Throw.IfNull(body);
         this.SourcePath = Throw.IfNullOrWhitespace(sourcePath);
         this.ResourceNames = resourceNames ?? [];
     }
@@ -54,11 +51,6 @@ internal sealed class FileAgentSkill
     /// Gets the full raw SKILL.md file content including YAML frontmatter.
     /// </summary>
     public string Content { get; }
-
-    /// <summary>
-    /// Gets the SKILL.md body content (without the YAML frontmatter).
-    /// </summary>
-    public string Body { get; }
 
     /// <summary>
     /// Gets the directory path where the skill was discovered.

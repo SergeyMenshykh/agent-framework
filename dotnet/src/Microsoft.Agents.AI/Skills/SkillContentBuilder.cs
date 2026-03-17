@@ -7,7 +7,7 @@ using System.Text.Json;
 namespace Microsoft.Agents.AI;
 
 /// <summary>
-/// Internal helper that builds XML-structured Body and Content strings for code-defined and class-based skills.
+/// Internal helper that builds XML-structured content strings for code-defined and class-based skills.
 /// </summary>
 internal static class SkillContentBuilder
 {

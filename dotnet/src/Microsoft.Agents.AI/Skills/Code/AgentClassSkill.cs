@@ -48,16 +48,10 @@ public abstract class AgentClassSkill : AgentSkill
 
     /// <inheritdoc/>
     /// <remarks>
-    /// Returns a synthesized XML document containing instructions, resources, and scripts.
-    /// </remarks>
-    public override string Body => SkillContentBuilder.BuildBody(this.Instructions, this.Resources, this.Scripts);
-
-    /// <inheritdoc/>
-    /// <remarks>
-    /// Returns a synthesized XML document containing name, description, and body.
+    /// Returns a synthesized XML document containing name, description, instructions, resources, and scripts.
     /// Override to provide custom content.
     /// </remarks>
-    public override string Content => SkillContentBuilder.BuildContent(this.Name, this.Description, this.Body);
+    public override string Content => SkillContentBuilder.BuildContent(this.Name, this.Description, SkillContentBuilder.BuildBody(this.Instructions, this.Resources, this.Scripts));
 
     /// <inheritdoc/>
     public override IReadOnlyList<AgentSkillResource>? Resources => null;

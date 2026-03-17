@@ -297,26 +297,6 @@ public sealed class AgentSkillsProviderTests : IDisposable
     }
 
     [Fact]
-    public async Task LoadSkill_OmitFrontmatterTrue_ReturnsBodyOnlyAsync()
-    {
-        // Arrange
-        this.CreateSkill("body-skill", "Body test", "Just the body.");
-        var options = new AgentSkillsProviderOptions { OmitFrontmatter = true };
-        var provider = new AgentSkillsProvider(new FileAgentSkillsSource(this._testRoot), options);
-        var inputContext = new AIContext();
-        var invokingContext = new AIContextProvider.InvokingContext(this._agent, session: null, inputContext);
-        var result = await provider.InvokingAsync(invokingContext, CancellationToken.None);
-        var loadSkillTool = result.Tools!.First(t => t.Name == "load_skill") as AIFunction;
-
-        // Act
-        var content = await loadSkillTool!.InvokeAsync(new AIFunctionArguments(new Dictionary<string, object?> { ["skillName"] = "body-skill" }));
-
-        // Assert — should contain only the body, not frontmatter
-        var text = content!.ToString()!;
-        Assert.Equal("Just the body.", text);
-    }
-
-    [Fact]
     public async Task Builder_WithFileScriptExecutorAfterAddFileSkills_ExecutorIsUsedAsync()
     {
         // Arrange — create a skill with a script file

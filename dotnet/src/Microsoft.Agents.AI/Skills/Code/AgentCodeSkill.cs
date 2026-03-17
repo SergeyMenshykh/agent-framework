@@ -47,10 +47,7 @@ public sealed class AgentCodeSkill : AgentSkill
     public override string Description { get; }
 
     /// <inheritdoc/>
-    public override string Content => SkillContentBuilder.BuildContent(this.Name, this.Description, this.Body);
-
-    /// <inheritdoc/>
-    public override string Body => SkillContentBuilder.BuildBody(this._instructions, this.Resources, this.Scripts);
+    public override string Content => SkillContentBuilder.BuildContent(this.Name, this.Description, SkillContentBuilder.BuildBody(this._instructions, this.Resources, this.Scripts));
 
     /// <inheritdoc/>
     public override IReadOnlyList<AgentSkillResource>? Resources => this._resources.Count > 0 ? this._resources : null;

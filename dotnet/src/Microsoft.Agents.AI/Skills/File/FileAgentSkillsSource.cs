@@ -103,7 +103,6 @@ public sealed partial class FileAgentSkillsSource : AgentSkillsSource
                 kvp.Value.Name,
                 kvp.Value.Description,
                 kvp.Value.Content,
-                kvp.Value.Body,
                 kvp.Value.SourcePath,
                 resources,
                 scripts);

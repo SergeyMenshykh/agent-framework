@@ -61,16 +61,16 @@ public sealed class AgentClassSkillTests
     }
 
     [Fact]
-    public void Name_Body_ReturnClassDefinedValues()
+    public void Name_Content_ReturnClassDefinedValues()
     {
         // Arrange
         var skill = new MinimalClassSkill();
 
         // Act & Assert
         Assert.Equal("minimal", skill.Name);
-        Assert.Contains("<instructions>", skill.Body);
-        Assert.Contains("Minimal skill body.", skill.Body);
-        Assert.Contains("</instructions>", skill.Body);
+        Assert.Contains("<instructions>", skill.Content);
+        Assert.Contains("Minimal skill body.", skill.Content);
+        Assert.Contains("</instructions>", skill.Content);
     }
 
     [Fact]

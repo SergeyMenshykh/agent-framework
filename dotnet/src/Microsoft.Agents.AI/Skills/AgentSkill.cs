@@ -43,16 +43,6 @@ public abstract class AgentSkill
     public abstract string Content { get; }
 
     /// <summary>
-    /// Gets the skill body content.
-    /// </summary>
-    /// <remarks>
-    /// For file-based skills this is the instructions text after the YAML frontmatter.
-    /// For code-defined and class-based skills this is an XML document containing
-    /// instructions, resources, and scripts elements.
-    /// </remarks>
-    public abstract string Body { get; }
-
-    /// <summary>
     /// Gets or sets an optional license name or reference.
     /// </summary>
     public string? License { get; set; }

@@ -46,7 +46,6 @@ public sealed class FileAgentSkillLoaderTests : IDisposable
         Assert.Single(skills);
         Assert.True(skills.ContainsKey("my-skill"));
         Assert.Equal("A test skill", skills["my-skill"].Description);
-        Assert.Equal("Use this skill to do things.", skills["my-skill"].Body);
     }
 
     [Fact]
@@ -464,7 +463,6 @@ public sealed class FileAgentSkillLoaderTests : IDisposable
             skill.Name,
             skill.Description,
             skill.Content,
-            skill.Body,
             skill.SourcePath,
             resourceNames: s_traversalResource);
 
@@ -630,7 +628,6 @@ public sealed class FileAgentSkillLoaderTests : IDisposable
             name: "symlink-read-skill",
             description: "A skill",
             content: "---\nname: symlink-read-skill\ndescription: A skill\n---\nSee [doc](refs/data.md).",
-            body: "See [doc](refs/data.md).",
             sourcePath: skillDir,
             resourceNames: s_symlinkResource);
 
@@ -655,7 +652,6 @@ public sealed class FileAgentSkillLoaderTests : IDisposable
         Assert.Single(skills);
         Assert.True(skills.ContainsKey("bom-skill"));
         Assert.Equal("Skill with BOM", skills["bom-skill"].Description);
-        Assert.Equal("Body content.", skills["bom-skill"].Body);
     }
 
     private string CreateSkillDirectory(string name, string description, string body)

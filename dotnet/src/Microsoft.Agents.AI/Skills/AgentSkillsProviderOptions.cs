@@ -24,12 +24,4 @@ public sealed class AgentSkillsProviderOptions
     /// Defaults to <see langword="false"/>.
     /// </summary>
     public bool ScriptApproval { get; set; }
-
-    /// <summary>
-    /// Gets or sets a value indicating whether the <c>load_skill</c> tool should return only the
-    /// skill body (with YAML frontmatter stripped) instead of the full skill content.
-    /// When <see langword="false"/> (default), the full content including frontmatter is returned.
-    /// When <see langword="true"/>, only the body (instructions after the frontmatter) is returned.
-    /// </summary>
-    public bool OmitFrontmatter { get; set; }
 }

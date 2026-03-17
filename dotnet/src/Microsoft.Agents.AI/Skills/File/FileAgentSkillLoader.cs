@@ -202,7 +202,6 @@ internal sealed partial class FileAgentSkillLoader
             name: name,
             description: description,
             content: content,
-            body: body,
             sourcePath: skillDirectoryFullPath,
             resourceNames: resourceNames);
     }

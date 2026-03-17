@@ -22,7 +22,6 @@ public sealed class AgentFileSkill : AgentSkill
     /// <param name="name">Skill name.</param>
     /// <param name="description">Skill description.</param>
     /// <param name="content">The full raw SKILL.md file content including YAML frontmatter.</param>
-    /// <param name="body">The SKILL.md content after the closing frontmatter delimiter.</param>
     /// <param name="sourcePath">Absolute path to the directory containing this skill.</param>
     /// <param name="resources">Resources discovered for this skill.</param>
     /// <param name="scripts">Scripts discovered for this skill.</param>
@@ -30,7 +29,6 @@ public sealed class AgentFileSkill : AgentSkill
         string name,
         string description,
         string content,
-        string body,
         string sourcePath,
         IReadOnlyList<AgentSkillResource>? resources = null,
         IReadOnlyList<AgentSkillScript>? scripts = null)
@@ -38,7 +36,6 @@ public sealed class AgentFileSkill : AgentSkill
         this.Name = Throw.IfNullOrWhitespace(name);
         this.Description = Throw.IfNullOrWhitespace(description);
         this.Content = Throw.IfNull(content);
-        this.Body = Throw.IfNull(body);
         this.SourcePath = Throw.IfNullOrWhitespace(sourcePath);
         this._resources = resources ?? System.Array.Empty<AgentSkillResource>();
         this._scripts = scripts ?? System.Array.Empty<AgentSkillScript>();
@@ -52,9 +49,6 @@ public sealed class AgentFileSkill : AgentSkill
 
     /// <inheritdoc/>
     public override string Content { get; }
-
-    /// <inheritdoc/>
-    public override string Body { get; }
 
     /// <summary>
     /// Gets the directory path where the skill was discovered.

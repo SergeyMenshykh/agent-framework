@@ -184,7 +184,7 @@ public sealed partial class AgentSkillsProvider : AIContextProvider, IDisposable
 
         LogSkillLoading(this._logger, skillName);
 
-        return this._options?.OmitFrontmatter == true ? skill.Body : skill.Content;
+        return skill.Content;
     }
 
     private async Task<object?> ReadSkillResourceAsync(string skillName, string resourceName, CancellationToken cancellationToken = default)
