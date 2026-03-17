@@ -16,7 +16,7 @@ namespace Microsoft.Agents.AI;
 [Experimental(DiagnosticIds.Experiments.AgentsAIExperiments)]
 public sealed class AgentFileSkillScript : AgentSkillScript
 {
-    private readonly FileSkillScriptExecutor? _executor;
+    private readonly AgentFileSkillScriptExecutor? _executor;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="AgentFileSkillScript"/> class.
@@ -24,7 +24,7 @@ public sealed class AgentFileSkillScript : AgentSkillScript
     /// <param name="name">The script name.</param>
     /// <param name="path">The file path to the script, relative to the skill directory.</param>
     /// <param name="executor">Optional external executor for running the script.</param>
-    internal AgentFileSkillScript(string name, string path, FileSkillScriptExecutor? executor = null)
+    internal AgentFileSkillScript(string name, string path, AgentFileSkillScriptExecutor? executor = null)
         : base(name)
     {
         this.Path = Throw.IfNullOrWhitespace(path);

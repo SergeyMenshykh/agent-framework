@@ -27,10 +27,10 @@ namespace Microsoft.Agents.AI;
 public sealed class AgentSkillsProviderBuilder
 {
     private readonly List<AgentSkillsSource> _sources = [];
-    private readonly List<Func<FileSkillScriptExecutor?, ILoggerFactory?, FileAgentSkillsSource>> _fileSourceFactories = [];
+    private readonly List<Func<AgentFileSkillScriptExecutor?, ILoggerFactory?, AgentFileSkillsSource>> _fileSourceFactories = [];
     private AgentSkillsProviderOptions? _options;
     private ILoggerFactory? _loggerFactory;
-    private FileSkillScriptExecutor? _scriptExecutor;
+    private AgentFileSkillScriptExecutor? _scriptExecutor;
 
     /// <summary>
     /// Adds a file-based skill source that discovers skills from filesystem directories.
@@ -39,7 +39,7 @@ public sealed class AgentSkillsProviderBuilder
     /// <param name="scriptExecutor">Optional executor for file-based scripts. Falls back to the executor set via <see cref="WithFileScriptExecutor"/>.</param>
     /// <param name="allowedResourceExtensions">Optional resource extension filter.</param>
     /// <returns>This builder instance for chaining.</returns>
-    public AgentSkillsProviderBuilder AddFileSkills(string skillPath, FileSkillScriptExecutor? scriptExecutor = null, IEnumerable<string>? allowedResourceExtensions = null)
+    public AgentSkillsProviderBuilder AddFileSkills(string skillPath, AgentFileSkillScriptExecutor? scriptExecutor = null, IEnumerable<string>? allowedResourceExtensions = null)
     {
         this.AddFileSkills([skillPath], scriptExecutor, allowedResourceExtensions);
         return this;
@@ -52,10 +52,10 @@ public sealed class AgentSkillsProviderBuilder
     /// <param name="scriptExecutor">Optional executor for file-based scripts. Falls back to the executor set via <see cref="WithFileScriptExecutor"/>.</param>
     /// <param name="allowedResourceExtensions">Optional resource extension filter.</param>
     /// <returns>This builder instance for chaining.</returns>
-    public AgentSkillsProviderBuilder AddFileSkills(IEnumerable<string> skillPaths, FileSkillScriptExecutor? scriptExecutor = null, IEnumerable<string>? allowedResourceExtensions = null)
+    public AgentSkillsProviderBuilder AddFileSkills(IEnumerable<string> skillPaths, AgentFileSkillScriptExecutor? scriptExecutor = null, IEnumerable<string>? allowedResourceExtensions = null)
     {
         this._fileSourceFactories.Add((builderExecutor, loggerFactory) =>
-            new FileAgentSkillsSource(skillPaths, allowedResourceExtensions, loggerFactory, scriptExecutor ?? builderExecutor));
+            new AgentFileSkillsSource(skillPaths, allowedResourceExtensions, loggerFactory, scriptExecutor ?? builderExecutor));
         return this;
     }
 
@@ -66,7 +66,7 @@ public sealed class AgentSkillsProviderBuilder
     /// <returns>This builder instance for chaining.</returns>
     public AgentSkillsProviderBuilder AddCodeSkills(params AgentCodeSkill[] skills)
     {
-        this._sources.Add(new CodeAgentSkillsSource(skills));
+        this._sources.Add(new AgentCodeSkillsSource(skills));
         return this;
     }
 
@@ -77,7 +77,7 @@ public sealed class AgentSkillsProviderBuilder
     /// <returns>This builder instance for chaining.</returns>
     public AgentSkillsProviderBuilder AddCodeSkills(IEnumerable<AgentCodeSkill> skills)
     {
-        var source = new CodeAgentSkillsSource(skills);
+        var source = new AgentCodeSkillsSource(skills);
         this._sources.Add(source);
         return this;
     }
@@ -89,7 +89,7 @@ public sealed class AgentSkillsProviderBuilder
     /// <returns>This builder instance for chaining.</returns>
     public AgentSkillsProviderBuilder AddClassSkills(params AgentClassSkill[] skills)
     {
-        this._sources.Add(new ClassAgentSkillsSource(skills));
+        this._sources.Add(new AgentClassSkillsSource(skills));
         return this;
     }
 
@@ -131,7 +131,7 @@ public sealed class AgentSkillsProviderBuilder
     /// </summary>
     /// <param name="executor">The delegate that executes file-based scripts.</param>
     /// <returns>This builder instance for chaining.</returns>
-    public AgentSkillsProviderBuilder WithFileScriptExecutor(FileSkillScriptExecutor executor)
+    public AgentSkillsProviderBuilder WithFileScriptExecutor(AgentFileSkillScriptExecutor executor)
     {
         this._scriptExecutor = executor ?? throw new ArgumentNullException(nameof(executor));
         return this;

@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 namespace Microsoft.Agents.AI.UnitTests.AgentSkills;
 
 /// <summary>
-/// Unit tests for the <see cref="FileAgentSkillsSource"/> skill discovery and parsing logic.
+/// Unit tests for the <see cref="AgentFileSkillsSource"/> skill discovery and parsing logic.
 /// </summary>
 public sealed class FileAgentSkillLoaderTests : IDisposable
 {
@@ -37,7 +37,7 @@ public sealed class FileAgentSkillLoaderTests : IDisposable
     {
         // Arrange
         _ = this.CreateSkillDirectory("my-skill", "A test skill", "Use this skill to do things.");
-        var source = new FileAgentSkillsSource(this._testRoot);
+        var source = new AgentFileSkillsSource(this._testRoot);
 
         // Act
         var skills = await source.GetSkillsAsync();
@@ -57,7 +57,7 @@ public sealed class FileAgentSkillLoaderTests : IDisposable
         File.WriteAllText(
             Path.Combine(skillDir, "SKILL.md"),
             "---\nname: 'quoted-skill'\ndescription: \"A quoted description\"\n---\nBody text.");
-        var source = new FileAgentSkillsSource(this._testRoot);
+        var source = new AgentFileSkillsSource(this._testRoot);
 
         // Act
         var skills = await source.GetSkillsAsync();
@@ -75,7 +75,7 @@ public sealed class FileAgentSkillLoaderTests : IDisposable
         string skillDir = Path.Combine(this._testRoot, "bad-skill");
         Directory.CreateDirectory(skillDir);
         File.WriteAllText(Path.Combine(skillDir, "SKILL.md"), "No frontmatter here.");
-        var source = new FileAgentSkillsSource(this._testRoot);
+        var source = new AgentFileSkillsSource(this._testRoot);
 
         // Act
         var skills = await source.GetSkillsAsync();
@@ -93,7 +93,7 @@ public sealed class FileAgentSkillLoaderTests : IDisposable
         File.WriteAllText(
             Path.Combine(skillDir, "SKILL.md"),
             "---\ndescription: A skill without a name\n---\nBody.");
-        var source = new FileAgentSkillsSource(this._testRoot);
+        var source = new AgentFileSkillsSource(this._testRoot);
 
         // Act
         var skills = await source.GetSkillsAsync();
@@ -111,7 +111,7 @@ public sealed class FileAgentSkillLoaderTests : IDisposable
         File.WriteAllText(
             Path.Combine(skillDir, "SKILL.md"),
             "---\nname: no-desc\n---\nBody.");
-        var source = new FileAgentSkillsSource(this._testRoot);
+        var source = new AgentFileSkillsSource(this._testRoot);
 
         // Act
         var skills = await source.GetSkillsAsync();
@@ -139,7 +139,7 @@ public sealed class FileAgentSkillLoaderTests : IDisposable
         File.WriteAllText(
             Path.Combine(skillDir, "SKILL.md"),
             $"---\nname: {invalidName}\ndescription: A skill\n---\nBody.");
-        var source = new FileAgentSkillsSource(this._testRoot);
+        var source = new AgentFileSkillsSource(this._testRoot);
 
         // Act
         var skills = await source.GetSkillsAsync();
@@ -166,7 +166,7 @@ public sealed class FileAgentSkillLoaderTests : IDisposable
         File.WriteAllText(
             Path.Combine(nestedDir, "SKILL.md"),
             "---\nname: dupe\ndescription: Second\n---\nSecond body.");
-        var source = new FileAgentSkillsSource(this._testRoot);
+        var source = new AgentFileSkillsSource(this._testRoot);
 
         // Act
         var skills = await source.GetSkillsAsync();
@@ -185,7 +185,7 @@ public sealed class FileAgentSkillLoaderTests : IDisposable
         _ = this.CreateSkillDirectoryWithRawContent(
             "wrong-dir-name",
             "---\nname: actual-skill-name\ndescription: A skill\n---\nBody.");
-        var source = new FileAgentSkillsSource(this._testRoot);
+        var source = new AgentFileSkillsSource(this._testRoot);
 
         // Act
         var skills = await source.GetSkillsAsync();
@@ -206,7 +206,7 @@ public sealed class FileAgentSkillLoaderTests : IDisposable
         File.WriteAllText(
             Path.Combine(skillDir, "SKILL.md"),
             "---\nname: resource-skill\ndescription: Has resources\n---\nSee docs for details.");
-        var source = new FileAgentSkillsSource(this._testRoot);
+        var source = new AgentFileSkillsSource(this._testRoot);
 
         // Act
         var skills = await source.GetSkillsAsync();
@@ -230,7 +230,7 @@ public sealed class FileAgentSkillLoaderTests : IDisposable
         File.WriteAllText(
             Path.Combine(skillDir, "SKILL.md"),
             "---\nname: ext-skill\ndescription: Extension test\n---\nBody.");
-        var source = new FileAgentSkillsSource(this._testRoot);
+        var source = new AgentFileSkillsSource(this._testRoot);
 
         // Act
         var skills = await source.GetSkillsAsync();
@@ -252,7 +252,7 @@ public sealed class FileAgentSkillLoaderTests : IDisposable
         File.WriteAllText(
             Path.Combine(skillDir, "SKILL.md"),
             "---\nname: selfref-skill\ndescription: Self ref test\n---\nBody.");
-        var source = new FileAgentSkillsSource(this._testRoot);
+        var source = new AgentFileSkillsSource(this._testRoot);
 
         // Act
         var skills = await source.GetSkillsAsync();
@@ -275,7 +275,7 @@ public sealed class FileAgentSkillLoaderTests : IDisposable
         File.WriteAllText(
             Path.Combine(skillDir, "SKILL.md"),
             "---\nname: nested-res-skill\ndescription: Nested resources\n---\nBody.");
-        var source = new FileAgentSkillsSource(this._testRoot);
+        var source = new AgentFileSkillsSource(this._testRoot);
 
         // Act
         var skills = await source.GetSkillsAsync();
@@ -298,7 +298,7 @@ public sealed class FileAgentSkillLoaderTests : IDisposable
         File.WriteAllText(
             Path.Combine(skillDir, "SKILL.md"),
             "---\nname: custom-ext-skill\ndescription: Custom extensions\n---\nBody.");
-        var source = new FileAgentSkillsSource(this._testRoot, allowedResourceExtensions: s_customExtensions);
+        var source = new AgentFileSkillsSource(this._testRoot, allowedResourceExtensions: s_customExtensions);
 
         // Act
         var skills = await source.GetSkillsAsync();
@@ -317,7 +317,7 @@ public sealed class FileAgentSkillLoaderTests : IDisposable
     public void Constructor_InvalidExtension_ThrowsArgumentException(string badExtension)
     {
         // Arrange & Act & Assert
-        Assert.Throws<ArgumentException>(() => new FileAgentSkillsSource(this._testRoot, allowedResourceExtensions: new string[] { badExtension }));
+        Assert.Throws<ArgumentException>(() => new AgentFileSkillsSource(this._testRoot, allowedResourceExtensions: new string[] { badExtension }));
     }
 
     [Fact]
@@ -326,7 +326,7 @@ public sealed class FileAgentSkillLoaderTests : IDisposable
         // Arrange & Act
         string skillDir = this.CreateSkillDirectory("null-ext", "A skill", "Body.");
         File.WriteAllText(Path.Combine(skillDir, "notes.md"), "notes");
-        var source = new FileAgentSkillsSource(this._testRoot);
+        var source = new AgentFileSkillsSource(this._testRoot);
 
         // Assert — default extensions include .md
         var skills = await source.GetSkillsAsync();
@@ -337,7 +337,7 @@ public sealed class FileAgentSkillLoaderTests : IDisposable
     public void Constructor_ValidExtensions_DoesNotThrow()
     {
         // Arrange & Act & Assert — should not throw
-        var source = new FileAgentSkillsSource(this._testRoot, allowedResourceExtensions: s_validExtensions);
+        var source = new AgentFileSkillsSource(this._testRoot, allowedResourceExtensions: s_validExtensions);
         Assert.NotNull(source);
     }
 
@@ -345,7 +345,7 @@ public sealed class FileAgentSkillLoaderTests : IDisposable
     public void Constructor_MixOfValidAndInvalidExtensions_ThrowsArgumentException()
     {
         // Arrange & Act & Assert — one bad extension in the list should cause failure
-        Assert.Throws<ArgumentException>(() => new FileAgentSkillsSource(this._testRoot, allowedResourceExtensions: s_mixedValidInvalidExtensions));
+        Assert.Throws<ArgumentException>(() => new AgentFileSkillsSource(this._testRoot, allowedResourceExtensions: s_mixedValidInvalidExtensions));
     }
 
     [Fact]
@@ -359,7 +359,7 @@ public sealed class FileAgentSkillLoaderTests : IDisposable
         File.WriteAllText(
             Path.Combine(skillDir, "SKILL.md"),
             "---\nname: root-resource-skill\ndescription: Root resources\n---\nBody.");
-        var source = new FileAgentSkillsSource(this._testRoot);
+        var source = new AgentFileSkillsSource(this._testRoot);
 
         // Act
         var skills = await source.GetSkillsAsync();
@@ -377,7 +377,7 @@ public sealed class FileAgentSkillLoaderTests : IDisposable
     {
         // Arrange — skill with no resource files
         _ = this.CreateSkillDirectory("no-resources", "A skill", "No resources here.");
-        var source = new FileAgentSkillsSource(this._testRoot);
+        var source = new AgentFileSkillsSource(this._testRoot);
 
         // Act
         var skills = await source.GetSkillsAsync();
@@ -391,7 +391,7 @@ public sealed class FileAgentSkillLoaderTests : IDisposable
     public async Task GetSkillsAsync_EmptyPaths_ReturnsEmptyListAsync()
     {
         // Arrange
-        var source = new FileAgentSkillsSource(Enumerable.Empty<string>());
+        var source = new AgentFileSkillsSource(Enumerable.Empty<string>());
 
         // Act
         var skills = await source.GetSkillsAsync();
@@ -404,7 +404,7 @@ public sealed class FileAgentSkillLoaderTests : IDisposable
     public async Task GetSkillsAsync_NonExistentPath_ReturnsEmptyListAsync()
     {
         // Arrange
-        var source = new FileAgentSkillsSource(Path.Combine(this._testRoot, "does-not-exist"));
+        var source = new AgentFileSkillsSource(Path.Combine(this._testRoot, "does-not-exist"));
 
         // Act
         var skills = await source.GetSkillsAsync();
@@ -422,7 +422,7 @@ public sealed class FileAgentSkillLoaderTests : IDisposable
         File.WriteAllText(
             Path.Combine(nestedDir, "SKILL.md"),
             "---\nname: nested-skill\ndescription: Nested\n---\nNested body.");
-        var source = new FileAgentSkillsSource(this._testRoot);
+        var source = new AgentFileSkillsSource(this._testRoot);
 
         // Act
         var skills = await source.GetSkillsAsync();
@@ -440,7 +440,7 @@ public sealed class FileAgentSkillLoaderTests : IDisposable
         string refsDir = Path.Combine(skillDir, "refs");
         Directory.CreateDirectory(refsDir);
         File.WriteAllText(Path.Combine(refsDir, "doc.md"), "Document content here.");
-        var source = new FileAgentSkillsSource(this._testRoot);
+        var source = new AgentFileSkillsSource(this._testRoot);
         var skills = await source.GetSkillsAsync();
         var resource = skills[0].Resources!.First(r => r.Name == "refs/doc.md");
 
@@ -461,7 +461,7 @@ public sealed class FileAgentSkillLoaderTests : IDisposable
         File.WriteAllText(
             Path.Combine(skillDir, "SKILL.md"),
             $"---\nname: {longName}\ndescription: A skill\n---\nBody.");
-        var source = new FileAgentSkillsSource(this._testRoot);
+        var source = new AgentFileSkillsSource(this._testRoot);
 
         // Act
         var skills = await source.GetSkillsAsync();
@@ -480,7 +480,7 @@ public sealed class FileAgentSkillLoaderTests : IDisposable
         File.WriteAllText(
             Path.Combine(skillDir, "SKILL.md"),
             $"---\nname: long-desc\ndescription: {longDesc}\n---\nBody.");
-        var source = new FileAgentSkillsSource(this._testRoot);
+        var source = new AgentFileSkillsSource(this._testRoot);
 
         // Act
         var skills = await source.GetSkillsAsync();
@@ -516,7 +516,7 @@ public sealed class FileAgentSkillLoaderTests : IDisposable
         File.WriteAllText(
             Path.Combine(skillDir, "SKILL.md"),
             "---\nname: symlink-escape-skill\ndescription: Symlinked directory escape\n---\nBody.");
-        var source = new FileAgentSkillsSource(this._testRoot);
+        var source = new AgentFileSkillsSource(this._testRoot);
 
         // Act
         var skills = await source.GetSkillsAsync();
@@ -536,7 +536,7 @@ public sealed class FileAgentSkillLoaderTests : IDisposable
         _ = this.CreateSkillDirectoryWithRawContent(
             "bom-skill",
             "\uFEFF---\nname: bom-skill\ndescription: Skill with BOM\n---\nBody content.");
-        var source = new FileAgentSkillsSource(this._testRoot);
+        var source = new AgentFileSkillsSource(this._testRoot);
 
         // Act
         var skills = await source.GetSkillsAsync();

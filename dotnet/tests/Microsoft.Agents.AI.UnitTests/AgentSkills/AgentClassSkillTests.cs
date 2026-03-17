@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 namespace Microsoft.Agents.AI.UnitTests.AgentSkills;
 
 /// <summary>
-/// Unit tests for <see cref="AgentClassSkill"/> and <see cref="ClassAgentSkillsSource"/>.
+/// Unit tests for <see cref="AgentClassSkill"/> and <see cref="AgentClassSkillsSource"/>.
 /// </summary>
 public sealed class AgentClassSkillTests
 {
@@ -87,11 +87,11 @@ public sealed class AgentClassSkillTests
     }
 
     [Fact]
-    public async Task ClassAgentSkillsSource_ReturnsAllSkills()
+    public async Task AgentClassSkillsSource_ReturnsAllSkills()
     {
         // Arrange
         var skills = new AgentClassSkill[] { new MinimalClassSkill(), new FullClassSkill() };
-        var source = new ClassAgentSkillsSource(skills);
+        var source = new AgentClassSkillsSource(skills);
 
         // Act
         var result = await source.GetSkillsAsync(CancellationToken.None);
