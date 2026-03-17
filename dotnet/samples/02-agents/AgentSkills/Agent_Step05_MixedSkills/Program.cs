@@ -39,13 +39,11 @@ var volumeConverterSkill = new AgentCodeSkill(
         | gallons | liters  | 3.78541 |
         | liters  | gallons | 0.264172|
         """)
-    .AddScript(ConvertVolume, "convert");
-
-static string ConvertVolume(double value, double factor)
-{
-    double result = Math.Round(value * factor, 4);
-    return JsonSerializer.Serialize(new { value, factor, result });
-}
+    .AddScript((double value, double factor) =>
+    {
+        double result = Math.Round(value * factor, 4);
+        return JsonSerializer.Serialize(new { value, factor, result });
+    }, "convert");
 
 // --- 2. Class-Based Skill: temperature-converter ---
 var temperatureConverter = new Agent_Step05_MixedSkills.TemperatureConverterSkill();
