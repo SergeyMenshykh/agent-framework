@@ -33,18 +33,23 @@ public abstract class AgentSkill
     public abstract string Description { get; }
 
     /// <summary>
-    /// Gets the full skill content including YAML frontmatter and body.
+    /// Gets the full skill content.
     /// </summary>
     /// <remarks>
     /// For file-based skills this is the raw SKILL.md file content.
-    /// For code-defined and class-based skills this is a synthesized document
-    /// containing YAML frontmatter (name and description) followed by the body.
+    /// For code-defined and class-based skills this is a synthesized XML document
+    /// containing name, description, and body (instructions, resources, scripts).
     /// </remarks>
     public abstract string Content { get; }
 
     /// <summary>
-    /// Gets the skill body content (instructions without frontmatter).
+    /// Gets the skill body content.
     /// </summary>
+    /// <remarks>
+    /// For file-based skills this is the instructions text after the YAML frontmatter.
+    /// For code-defined and class-based skills this is an XML document containing
+    /// instructions, resources, and scripts elements.
+    /// </remarks>
     public abstract string Body { get; }
 
     /// <summary>

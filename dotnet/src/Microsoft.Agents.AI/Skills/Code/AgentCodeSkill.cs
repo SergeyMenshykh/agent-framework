@@ -14,12 +14,13 @@ namespace Microsoft.Agents.AI;
 /// A skill defined entirely in code with static/dynamic resources and delegate-backed scripts.
 /// </summary>
 /// <remarks>
-/// Use <see cref="AddResource(string, object?)"/>, <see cref="AddResource(string, Func{CancellationToken, Task{object}})"/>,
-/// and <see cref="AddScript(Delegate, string)"/> to register resources and scripts after construction.
+/// Use <see cref="AddResource(string, object?, string?)"/>, <see cref="AddResource(string, Func{CancellationToken, Task{object}}, string?)"/>,
+/// and <see cref="AddScript(Delegate, string, string?)"/> to register resources and scripts after construction.
 /// </remarks>
 [Experimental(DiagnosticIds.Experiments.AgentsAIExperiments)]
 public sealed class AgentCodeSkill : AgentSkill
 {
+    private readonly string _instructions;
     private readonly List<AgentSkillResource> _resources = new();
     private readonly List<AgentSkillScript> _scripts = new();
 
@@ -28,16 +29,15 @@ public sealed class AgentCodeSkill : AgentSkill
     /// </summary>
     /// <param name="name">Skill name.</param>
     /// <param name="description">Skill description.</param>
-    /// <param name="body">Skill instructions body.</param>
+    /// <param name="instructions">Skill instructions text.</param>
     public AgentCodeSkill(
         string name,
         string description,
-        string body)
+        string instructions)
     {
         this.Name = Throw.IfNullOrWhitespace(name);
         this.Description = Throw.IfNullOrWhitespace(description);
-        this.Content = $"---\nname: {name}\ndescription: {description}\n---\n{Throw.IfNull(body)}";
-        this.Body = Throw.IfNull(body);
+        this._instructions = Throw.IfNull(instructions);
     }
 
     /// <inheritdoc/>
@@ -47,10 +47,10 @@ public sealed class AgentCodeSkill : AgentSkill
     public override string Description { get; }
 
     /// <inheritdoc/>
-    public override string Content { get; }
+    public override string Content => SkillContentBuilder.BuildContent(this.Name, this.Description, this.Body);
 
     /// <inheritdoc/>
-    public override string Body { get; }
+    public override string Body => SkillContentBuilder.BuildBody(this._instructions, this.Resources, this.Scripts);
 
     /// <inheritdoc/>
     public override IReadOnlyList<AgentSkillResource>? Resources => this._resources.Count > 0 ? this._resources : null;
@@ -63,10 +63,11 @@ public sealed class AgentCodeSkill : AgentSkill
     /// </summary>
     /// <param name="name">The resource name.</param>
     /// <param name="value">The static resource value.</param>
+    /// <param name="description">An optional description of the resource.</param>
     /// <returns>This instance, for chaining.</returns>
-    public AgentCodeSkill AddResource(string name, object? value)
+    public AgentCodeSkill AddResource(string name, object? value, string? description = null)
     {
-        this._resources.Add(new AgentCodeSkillResource(name, value));
+        this._resources.Add(new AgentCodeSkillResource(name, value, description));
         return this;
     }
 
@@ -75,10 +76,11 @@ public sealed class AgentCodeSkill : AgentSkill
     /// </summary>
     /// <param name="name">The resource name.</param>
     /// <param name="valueFactory">A function that produces the resource value when requested.</param>
+    /// <param name="description">An optional description of the resource.</param>
     /// <returns>This instance, for chaining.</returns>
-    public AgentCodeSkill AddResource(string name, Func<CancellationToken, Task<object?>> valueFactory)
+    public AgentCodeSkill AddResource(string name, Func<CancellationToken, Task<object?>> valueFactory, string? description = null)
     {
-        this._resources.Add(new AgentCodeSkillResource(name, valueFactory));
+        this._resources.Add(new AgentCodeSkillResource(name, valueFactory, description));
         return this;
     }
 
@@ -88,10 +90,11 @@ public sealed class AgentCodeSkill : AgentSkill
     /// </summary>
     /// <param name="handler">A method to execute when the script is invoked.</param>
     /// <param name="name">The script name.</param>
+    /// <param name="description">An optional description of the script.</param>
     /// <returns>This instance, for chaining.</returns>
-    public AgentCodeSkill AddScript(Delegate handler, string name)
+    public AgentCodeSkill AddScript(Delegate handler, string name, string? description = null)
     {
-        this._scripts.Add(new AgentCodeSkillScript(handler, name));
+        this._scripts.Add(new AgentCodeSkillScript(handler, name, description));
         return this;
     }
 }

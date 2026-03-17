@@ -21,7 +21,7 @@ string deploymentName = Environment.GetEnvironmentVariable("AZURE_OPENAI_DEPLOYM
 var volumeConverterSkill = new AgentCodeSkill(
     name: "volume-converter",
     description: "Convert between gallons and liters using a multiplication factor.",
-    body: """
+    instructions: """
         Use this skill when the user asks to convert between gallons and liters.
 
         1. Review the conversion-table resource to find the correct factor.

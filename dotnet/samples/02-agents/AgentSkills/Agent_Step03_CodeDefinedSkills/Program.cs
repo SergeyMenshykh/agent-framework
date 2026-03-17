@@ -22,7 +22,7 @@ string deploymentName = Environment.GetEnvironmentVariable("AZURE_OPENAI_DEPLOYM
 var unitConverterSkill = new AgentCodeSkill(
     name: "unit-converter",
     description: "Convert between common units using a multiplication factor. Use when asked to convert miles, kilometers, pounds, or kilograms.",
-    body: """
+    instructions: """
         Use this skill when the user asks to convert between units.
 
         1. Review the conversion-tables resource to find the factor for the requested conversion.

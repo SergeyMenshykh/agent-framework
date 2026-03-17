@@ -19,15 +19,22 @@ public abstract class AgentSkillScript
     /// Initializes a new instance of the <see cref="AgentSkillScript"/> class.
     /// </summary>
     /// <param name="name">The script name.</param>
-    protected AgentSkillScript(string name)
+    /// <param name="description">An optional description of the script.</param>
+    protected AgentSkillScript(string name, string? description = null)
     {
         this.Name = Throw.IfNullOrWhitespace(name);
+        this.Description = description;
     }
 
     /// <summary>
     /// Gets the script name.
     /// </summary>
     public string Name { get; }
+
+    /// <summary>
+    /// Gets the optional script description.
+    /// </summary>
+    public string? Description { get; }
 
     /// <summary>
     /// Executes the script with the given arguments.

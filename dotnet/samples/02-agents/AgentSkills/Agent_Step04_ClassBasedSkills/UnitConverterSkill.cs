@@ -23,7 +23,7 @@ public sealed class UnitConverterSkill : AgentClassSkill
         "Convert between common units using a multiplication factor. Use when asked to convert miles, kilometers, pounds, or kilograms.";
 
     /// <inheritdoc/>
-    public override string Body => """
+    public override string Instructions => """
         Use this skill when the user asks to convert between units.
 
         1. Review the conversion-tables resource to find the factor for the requested conversion.

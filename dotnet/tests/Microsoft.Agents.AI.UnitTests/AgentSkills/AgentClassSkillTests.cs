@@ -68,19 +68,21 @@ public sealed class AgentClassSkillTests
 
         // Act & Assert
         Assert.Equal("minimal", skill.Name);
-        Assert.Equal("Minimal skill body.", skill.Body);
+        Assert.Contains("<instructions>", skill.Body);
+        Assert.Contains("Minimal skill body.", skill.Body);
+        Assert.Contains("</instructions>", skill.Body);
     }
 
     [Fact]
-    public void Content_ReturnsSynthesizedFrontmatterAndBody()
+    public void Content_ReturnsSynthesizedXmlDocument()
     {
         // Arrange
         var skill = new MinimalClassSkill();
 
         // Act & Assert
-        Assert.Contains("---", skill.Content);
-        Assert.Contains("name: minimal", skill.Content);
-        Assert.Contains("description: A minimal skill.", skill.Content);
+        Assert.Contains("<name>minimal</name>", skill.Content);
+        Assert.Contains("<description>A minimal skill.</description>", skill.Content);
+        Assert.Contains("<instructions>", skill.Content);
         Assert.Contains("Minimal skill body.", skill.Content);
     }
 
@@ -130,7 +132,7 @@ public sealed class AgentClassSkillTests
 
         public override string Description => "A minimal skill.";
 
-        public override string Body => "Minimal skill body.";
+        public override string Instructions => "Minimal skill body.";
     }
 
     private sealed class FullClassSkill : AgentClassSkill
@@ -139,7 +141,7 @@ public sealed class AgentClassSkillTests
 
         public override string Description => "A full skill with resources and scripts.";
 
-        public override string Body => "Full skill body.";
+        public override string Instructions => "Full skill body.";
 
         public override IReadOnlyList<AgentSkillResource>? Resources { get; } =
         [
@@ -161,7 +163,7 @@ public sealed class AgentClassSkillTests
 
         public override string Description => "Skill with resources only.";
 
-        public override string Body => "Body.";
+        public override string Instructions => "Body.";
 
         public override IReadOnlyList<AgentSkillResource>? Resources { get; } =
         [
@@ -175,7 +177,7 @@ public sealed class AgentClassSkillTests
 
         public override string Description => "Skill with scripts only.";
 
-        public override string Body => "Body.";
+        public override string Instructions => "Body.";
 
         public override IReadOnlyList<AgentSkillScript>? Scripts { get; } =
         [

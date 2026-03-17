@@ -18,15 +18,22 @@ public abstract class AgentSkillResource
     /// Initializes a new instance of the <see cref="AgentSkillResource"/> class.
     /// </summary>
     /// <param name="name">The resource name (e.g., relative path or identifier).</param>
-    protected AgentSkillResource(string name)
+    /// <param name="description">An optional description of the resource.</param>
+    protected AgentSkillResource(string name, string? description = null)
     {
         this.Name = Throw.IfNullOrWhitespace(name);
+        this.Description = description;
     }
 
     /// <summary>
     /// Gets the resource name.
     /// </summary>
     public string Name { get; }
+
+    /// <summary>
+    /// Gets the optional resource description.
+    /// </summary>
+    public string? Description { get; }
 
     /// <summary>
     /// Reads the resource content asynchronously.

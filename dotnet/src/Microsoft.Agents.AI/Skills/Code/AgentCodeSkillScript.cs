@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.AI;
@@ -37,8 +38,9 @@ public sealed class AgentCodeSkillScript : AgentSkillScript
     /// </summary>
     /// <param name="handler">A method to execute when the script is invoked. Parameters are automatically deserialized from JSON.</param>
     /// <param name="name">The script name.</param>
-    public AgentCodeSkillScript(Delegate handler, string name)
-        : base(Throw.IfNullOrWhitespace(name))
+    /// <param name="description">An optional description of the script.</param>
+    public AgentCodeSkillScript(Delegate handler, string name, string? description = null)
+        : base(Throw.IfNullOrWhitespace(name), description)
     {
         Throw.IfNull(handler);
         this._function = AIFunctionFactory.Create(handler, name: this.Name);
@@ -49,12 +51,13 @@ public sealed class AgentCodeSkillScript : AgentSkillScript
     /// </summary>
     /// <param name="name">The script name.</param>
     /// <param name="handler">The delegate that executes the script logic.</param>
+    /// <param name="description">An optional description of the script.</param>
     /// <remarks>
-    /// Prefer the <see cref="AgentCodeSkillScript(Delegate, string?)"/> constructor which provides
+    /// Prefer the <see cref="AgentCodeSkillScript(Delegate, string, string?)"/> constructor which provides
     /// automatic parameter marshaling. This constructor requires manual argument handling.
     /// </remarks>
-    public AgentCodeSkillScript(string name, Func<IDictionary<string, object?>, CancellationToken, Task<string>> handler)
-        : base(name)
+    public AgentCodeSkillScript(string name, Func<IDictionary<string, object?>, CancellationToken, Task<string>> handler, string? description = null)
+        : base(name, description)
     {
         if (handler == null)
         {
@@ -65,6 +68,11 @@ public sealed class AgentCodeSkillScript : AgentSkillScript
             (AIFunctionArguments arguments, CancellationToken cancellationToken) => handler(arguments, cancellationToken),
             name: name);
     }
+
+    /// <summary>
+    /// Gets the JSON schema describing the parameters accepted by this script, or <see langword="null"/> if not available.
+    /// </summary>
+    public JsonElement? ParametersSchema => this._function.JsonSchema;
 
     /// <inheritdoc/>
     public override async Task<object?> ExecuteAsync(AgentSkill skill, AIFunctionArguments arguments, CancellationToken cancellationToken = default)

@@ -23,8 +23,9 @@ public sealed class AgentCodeSkillResource : AgentSkillResource
     /// </summary>
     /// <param name="name">The resource name.</param>
     /// <param name="value">The static resource value.</param>
-    public AgentCodeSkillResource(string name, object? value)
-        : base(name)
+    /// <param name="description">An optional description of the resource.</param>
+    public AgentCodeSkillResource(string name, object? value, string? description = null)
+        : base(name, description)
     {
         this._staticValue = value;
         this._isDynamic = false;
@@ -35,8 +36,9 @@ public sealed class AgentCodeSkillResource : AgentSkillResource
     /// </summary>
     /// <param name="name">The resource name.</param>
     /// <param name="valueFactory">A function that produces the resource value when requested.</param>
-    public AgentCodeSkillResource(string name, Func<CancellationToken, Task<object?>> valueFactory)
-        : base(name)
+    /// <param name="description">An optional description of the resource.</param>
+    public AgentCodeSkillResource(string name, Func<CancellationToken, Task<object?>> valueFactory, string? description = null)
+        : base(name, description)
     {
         this._dynamicValue = valueFactory ?? throw new ArgumentNullException(nameof(valueFactory));
         this._isDynamic = true;

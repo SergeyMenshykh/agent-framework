@@ -20,7 +20,7 @@ public sealed class TemperatureConverterSkill : AgentClassSkill
         "Convert between temperature scales (Fahrenheit, Celsius, Kelvin).";
 
     /// <inheritdoc/>
-    public override string Body => """
+    public override string Instructions => """
         Use this skill when the user asks to convert temperatures.
 
         1. Review the conversion-formulas resource for the correct formula.
