@@ -31,7 +31,6 @@ var unitConverterSkill = new AgentCodeSkill(
         """)
     // 1. Static Resource: conversion tables
     .AddResource(
-        "conversion-tables",
         """
         # Conversion Tables
 
@@ -43,10 +42,10 @@ var unitConverterSkill = new AgentCodeSkill(
         | kilometers  | miles       | 0.621371 |
         | pounds      | kilograms   | 0.453592 |
         | kilograms   | pounds      | 2.20462  |
-        """)
+        """,
+        "conversion-tables")
     // 2. Dynamic Resource: conversion policy (computed at runtime)
     .AddResource(
-        "conversion-policy",
         () =>
         {
             const int Precision = 4;
@@ -57,7 +56,8 @@ var unitConverterSkill = new AgentCodeSkill(
                 **Format:** Always show both the original and converted values with units
                 **Generated at:** {DateTime.UtcNow:O}
                 """;
-        })
+        },
+        "conversion-policy")
     // 3. Code Script: convert
     .AddScript((double value, double factor) =>
     {

@@ -28,7 +28,6 @@ var volumeConverterSkill = new AgentCodeSkill(
         2. Use the convert-volume script, passing the value and factor.
         """)
     .AddResource(
-        "volume-conversion-table",
         """
         # Volume Conversion Table
 
@@ -38,7 +37,8 @@ var volumeConverterSkill = new AgentCodeSkill(
         |---------|---------|---------|
         | gallons | liters  | 3.78541 |
         | liters  | gallons | 0.264172|
-        """)
+        """,
+        "volume-conversion-table")
     .AddScript((double value, double factor) =>
     {
         double result = Math.Round(value * factor, 4);

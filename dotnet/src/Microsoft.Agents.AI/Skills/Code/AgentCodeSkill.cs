@@ -12,7 +12,7 @@ namespace Microsoft.Agents.AI;
 /// A skill defined entirely in code with static/dynamic resources and delegate-backed scripts.
 /// </summary>
 /// <remarks>
-/// Use <see cref="AddResource(string, object?, string?)"/>, <see cref="AddResource(string, Delegate, string?)"/>,
+/// Use <see cref="AddResource(object, string, string?)"/>, <see cref="AddResource(Delegate, string, string?)"/>,
 /// and <see cref="AddScript(Delegate, string, string?)"/> to register resources and scripts after construction.
 /// </remarks>
 [Experimental(DiagnosticIds.Experiments.AgentsAIExperiments)]
@@ -52,11 +52,11 @@ public sealed class AgentCodeSkill : AgentSkill
     /// <summary>
     /// Registers a static resource with this skill.
     /// </summary>
-    /// <param name="name">The resource name.</param>
     /// <param name="value">The static resource value.</param>
+    /// <param name="name">The resource name.</param>
     /// <param name="description">An optional description of the resource.</param>
     /// <returns>This instance, for chaining.</returns>
-    public AgentCodeSkill AddResource(string name, object? value, string? description = null)
+    public AgentCodeSkill AddResource(object value, string name, string? description = null)
     {
         this._resources.Add(new AgentCodeSkillResource(name, value, description));
         return this;
@@ -66,11 +66,11 @@ public sealed class AgentCodeSkill : AgentSkill
     /// Registers a dynamic resource with this skill, backed by a C# delegate.
     /// The delegate's parameters and return type are automatically marshaled via <c>AIFunctionFactory</c>.
     /// </summary>
-    /// <param name="name">The resource name.</param>
     /// <param name="handler">A method that produces the resource value when requested.</param>
+    /// <param name="name">The resource name.</param>
     /// <param name="description">An optional description of the resource.</param>
     /// <returns>This instance, for chaining.</returns>
-    public AgentCodeSkill AddResource(string name, Delegate handler, string? description = null)
+    public AgentCodeSkill AddResource(Delegate handler, string name, string? description = null)
     {
         this._resources.Add(new AgentCodeSkillResource(name, handler, description));
         return this;

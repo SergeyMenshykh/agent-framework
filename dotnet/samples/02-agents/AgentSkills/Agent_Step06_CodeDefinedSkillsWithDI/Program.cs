@@ -32,11 +32,11 @@ var unitConverterSkill = new AgentCodeSkill(
         3. Use the convert script, passing the value and factor from the table.
         """)
     // Dynamic resource with DI: resolves ConversionRateService to build conversion table
-    .AddResource("conversion-tables", (IServiceProvider serviceProvider) =>
+    .AddResource((IServiceProvider serviceProvider) =>
     {
         var rateService = serviceProvider.GetRequiredService<ConversionRateService>();
         return rateService.GetConversionTables();
-    })
+    }, "conversion-tables")
     // Script with DI: resolves ConversionRateService to perform the conversion
     .AddScript((double value, double factor, IServiceProvider serviceProvider) =>
     {
