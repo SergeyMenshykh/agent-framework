@@ -19,22 +19,19 @@ public sealed class AgentFileSkill : AgentSkill
     /// <summary>
     /// Initializes a new instance of the <see cref="AgentFileSkill"/> class.
     /// </summary>
-    /// <param name="name">Skill name.</param>
-    /// <param name="description">Skill description.</param>
+    /// <param name="frontmatter">The parsed frontmatter metadata for this skill.</param>
     /// <param name="content">The full raw SKILL.md file content including YAML frontmatter.</param>
     /// <param name="sourcePath">Absolute path to the directory containing this skill.</param>
     /// <param name="resources">Resources discovered for this skill.</param>
     /// <param name="scripts">Scripts discovered for this skill.</param>
     public AgentFileSkill(
-        string name,
-        string description,
+        AgentSkillFrontmatter frontmatter,
         string content,
         string sourcePath,
         IReadOnlyList<AgentSkillResource>? resources = null,
         IReadOnlyList<AgentSkillScript>? scripts = null)
     {
-        this.Name = Throw.IfNullOrWhitespace(name);
-        this.Description = Throw.IfNullOrWhitespace(description);
+        this.Frontmatter = Throw.IfNull(frontmatter);
         this.Content = Throw.IfNull(content);
         this.SourcePath = Throw.IfNullOrWhitespace(sourcePath);
         this._resources = resources ?? System.Array.Empty<AgentSkillResource>();
@@ -42,10 +39,7 @@ public sealed class AgentFileSkill : AgentSkill
     }
 
     /// <inheritdoc/>
-    public override string Name { get; }
-
-    /// <inheritdoc/>
-    public override string Description { get; }
+    public override AgentSkillFrontmatter Frontmatter { get; }
 
     /// <inheritdoc/>
     public override string Content { get; }

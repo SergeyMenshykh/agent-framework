@@ -11,11 +11,9 @@ namespace Agent_Step05_MixedSkills;
 public sealed class TemperatureConverterSkill : AgentClassSkill
 {
     /// <inheritdoc/>
-    public override string Name => "temperature-converter";
-
-    /// <inheritdoc/>
-    public override string Description =>
-        "Convert between temperature scales (Fahrenheit, Celsius, Kelvin).";
+    public override AgentSkillFrontmatter Frontmatter { get; } = new(
+        "temperature-converter",
+        "Convert between temperature scales (Fahrenheit, Celsius, Kelvin).");
 
     /// <inheritdoc/>
     public override string Instructions => """

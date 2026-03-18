@@ -67,7 +67,7 @@ public sealed class AgentClassSkillTests
         var skill = new MinimalClassSkill();
 
         // Act & Assert
-        Assert.Equal("minimal", skill.Name);
+        Assert.Equal("minimal", skill.Frontmatter.Name);
         Assert.Contains("<instructions>", skill.Content);
         Assert.Contains("Minimal skill body.", skill.Content);
         Assert.Contains("</instructions>", skill.Content);
@@ -98,8 +98,8 @@ public sealed class AgentClassSkillTests
 
         // Assert
         Assert.Equal(2, result.Count);
-        Assert.Equal("minimal", result[0].Name);
-        Assert.Equal("full", result[1].Name);
+        Assert.Equal("minimal", result[0].Frontmatter.Name);
+        Assert.Equal("full", result[1].Frontmatter.Name);
     }
 
     [Fact]
@@ -128,18 +128,14 @@ public sealed class AgentClassSkillTests
 
     private sealed class MinimalClassSkill : AgentClassSkill
     {
-        public override string Name => "minimal";
-
-        public override string Description => "A minimal skill.";
+        public override AgentSkillFrontmatter Frontmatter { get; } = new("minimal", "A minimal skill.");
 
         public override string Instructions => "Minimal skill body.";
     }
 
     private sealed class FullClassSkill : AgentClassSkill
     {
-        public override string Name => "full";
-
-        public override string Description => "A full skill with resources and scripts.";
+        public override AgentSkillFrontmatter Frontmatter { get; } = new("full", "A full skill with resources and scripts.");
 
         public override string Instructions => "Full skill body.";
 
@@ -159,9 +155,7 @@ public sealed class AgentClassSkillTests
 
     private sealed class ResourceOnlySkill : AgentClassSkill
     {
-        public override string Name => "resource-only";
-
-        public override string Description => "Skill with resources only.";
+        public override AgentSkillFrontmatter Frontmatter { get; } = new("resource-only", "Skill with resources only.");
 
         public override string Instructions => "Body.";
 
@@ -173,9 +167,7 @@ public sealed class AgentClassSkillTests
 
     private sealed class ScriptOnlySkill : AgentClassSkill
     {
-        public override string Name => "script-only";
-
-        public override string Description => "Skill with scripts only.";
+        public override AgentSkillFrontmatter Frontmatter { get; } = new("script-only", "Skill with scripts only.");
 
         public override string Instructions => "Body.";
 

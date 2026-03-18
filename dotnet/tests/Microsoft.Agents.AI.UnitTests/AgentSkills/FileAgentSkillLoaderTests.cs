@@ -44,8 +44,8 @@ public sealed class FileAgentSkillLoaderTests : IDisposable
 
         // Assert
         Assert.Single(skills);
-        Assert.Equal("my-skill", skills[0].Name);
-        Assert.Equal("A test skill", skills[0].Description);
+        Assert.Equal("my-skill", skills[0].Frontmatter.Name);
+        Assert.Equal("A test skill", skills[0].Frontmatter.Description);
     }
 
     [Fact]
@@ -64,8 +64,8 @@ public sealed class FileAgentSkillLoaderTests : IDisposable
 
         // Assert
         Assert.Single(skills);
-        Assert.Equal("quoted-skill", skills[0].Name);
-        Assert.Equal("A quoted description", skills[0].Description);
+        Assert.Equal("quoted-skill", skills[0].Frontmatter.Name);
+        Assert.Equal("A quoted description", skills[0].Frontmatter.Description);
     }
 
     [Fact]
@@ -174,7 +174,7 @@ public sealed class FileAgentSkillLoaderTests : IDisposable
         // Assert – filesystem enumeration order is not guaranteed, so we only
         // verify that exactly one of the two duplicates was kept.
         Assert.Single(skills);
-        string desc = skills[0].Description;
+        string desc = skills[0].Frontmatter.Description;
         Assert.True(desc == "First" || desc == "Second", $"Unexpected description: {desc}");
     }
 
@@ -429,7 +429,7 @@ public sealed class FileAgentSkillLoaderTests : IDisposable
 
         // Assert
         Assert.Single(skills);
-        Assert.Equal("nested-skill", skills[0].Name);
+        Assert.Equal("nested-skill", skills[0].Frontmatter.Name);
     }
 
     [Fact]
@@ -522,7 +522,7 @@ public sealed class FileAgentSkillLoaderTests : IDisposable
         var skills = await source.GetSkillsAsync();
 
         // Assert — skill should still load, but symlinked resources should be excluded
-        var skill = skills.FirstOrDefault(s => s.Name == "symlink-escape-skill");
+        var skill = skills.FirstOrDefault(s => s.Frontmatter.Name == "symlink-escape-skill");
         Assert.NotNull(skill);
         Assert.Single(skill.Resources!);
         Assert.Equal("legit.md", skill.Resources![0].Name);
@@ -543,8 +543,8 @@ public sealed class FileAgentSkillLoaderTests : IDisposable
 
         // Assert
         Assert.Single(skills);
-        Assert.Equal("bom-skill", skills[0].Name);
-        Assert.Equal("Skill with BOM", skills[0].Description);
+        Assert.Equal("bom-skill", skills[0].Frontmatter.Name);
+        Assert.Equal("Skill with BOM", skills[0].Frontmatter.Description);
     }
 
     private string CreateSkillDirectory(string name, string description, string body)

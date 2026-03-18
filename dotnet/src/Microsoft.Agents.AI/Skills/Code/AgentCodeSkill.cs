@@ -35,19 +35,15 @@ public sealed class AgentCodeSkill : AgentSkill
         string description,
         string instructions)
     {
-        this.Name = Throw.IfNullOrWhitespace(name);
-        this.Description = Throw.IfNullOrWhitespace(description);
+        this.Frontmatter = new AgentSkillFrontmatter(name, description);
         this._instructions = Throw.IfNull(instructions);
     }
 
     /// <inheritdoc/>
-    public override string Name { get; }
+    public override AgentSkillFrontmatter Frontmatter { get; }
 
     /// <inheritdoc/>
-    public override string Description { get; }
-
-    /// <inheritdoc/>
-    public override string Content => SkillContentBuilder.BuildContent(this.Name, this.Description, SkillContentBuilder.BuildBody(this._instructions, this.Resources, this.Scripts));
+    public override string Content => SkillContentBuilder.BuildContent(this.Frontmatter.Name, this.Frontmatter.Description, SkillContentBuilder.BuildBody(this._instructions, this.Resources, this.Scripts));
 
     /// <inheritdoc/>
     public override IReadOnlyList<AgentSkillResource>? Resources => this._resources.Count > 0 ? this._resources : null;

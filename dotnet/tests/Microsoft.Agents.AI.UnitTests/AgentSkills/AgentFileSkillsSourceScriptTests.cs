@@ -144,7 +144,7 @@ public sealed class AgentFileSkillsSourceScriptTests : IDisposable
             scriptExecutor: (skill, script, args, ct) =>
             {
                 executorCalled = true;
-                Assert.Equal("exec-skill", skill.Name);
+                Assert.Equal("exec-skill", skill.Frontmatter.Name);
                 Assert.Equal("scripts/test.py", script.Name);
                 Assert.Equal("scripts/test.py", script.Path);
                 return Task.FromResult<object?>("executed");

@@ -30,8 +30,6 @@ public sealed partial class AgentFileSkillsSource : AgentSkillsSource
 {
     private const string SkillFileName = "SKILL.md";
     private const int MaxSearchDepth = 2;
-    private const int MaxNameLength = 64;
-    private const int MaxDescriptionLength = 1024;
 
     private static readonly string[] s_defaultScriptExtensions = [".py", ".js", ".sh", ".ps1", ".cs", ".csx"];
     private static readonly string[] s_defaultResourceExtensions = [".md", ".json", ".yaml", ".yml", ".csv", ".xml", ".txt"];
@@ -121,16 +119,16 @@ public sealed partial class AgentFileSkillsSource : AgentSkillsSource
                 continue;
             }
 
-            if (seenNames.TryGetValue(skill.Name, out string? existingPath))
+            if (seenNames.TryGetValue(skill.Frontmatter.Name, out string? existingPath))
             {
-                LogDuplicateSkillName(this._logger, skill.Name, skillPath, existingPath);
+                LogDuplicateSkillName(this._logger, skill.Frontmatter.Name, skillPath, existingPath);
                 continue;
             }
 
-            seenNames[skill.Name] = skill.SourcePath;
+            seenNames[skill.Frontmatter.Name] = skill.SourcePath;
             skills.Add(skill);
 
-            LogSkillLoaded(this._logger, skill.Name);
+            LogSkillLoaded(this._logger, skill.Frontmatter.Name);
         }
 
         LogSkillsLoadedTotal(this._logger, skills.Count);
@@ -180,27 +178,25 @@ public sealed partial class AgentFileSkillsSource : AgentSkillsSource
         string skillFilePath = Path.Combine(skillDirectoryFullPath, SkillFileName);
         string content = File.ReadAllText(skillFilePath, Encoding.UTF8);
 
-        if (!this.TryParseSkillDocument(content, skillFilePath, out string name, out string description))
+        if (!this.TryParseFrontmatter(content, skillFilePath, out AgentSkillFrontmatter? frontmatter))
         {
             return null;
         }
 
-        var resources = this.DiscoverResourceFiles(skillDirectoryFullPath, name);
-        var scripts = this.DiscoverScriptFiles(skillDirectoryFullPath, name);
+        var resources = this.DiscoverResourceFiles(skillDirectoryFullPath, frontmatter.Name);
+        var scripts = this.DiscoverScriptFiles(skillDirectoryFullPath, frontmatter.Name);
 
         return new AgentFileSkill(
-            name: name,
-            description: description,
+            frontmatter: frontmatter,
             content: content,
             sourcePath: skillDirectoryFullPath,
             resources: resources,
             scripts: scripts);
     }
 
-    private bool TryParseSkillDocument(string content, string skillFilePath, out string name, out string description)
+    private bool TryParseFrontmatter(string content, string skillFilePath, [NotNullWhen(true)] out AgentSkillFrontmatter? frontmatter)
     {
-        name = null!;
-        description = null!;
+        frontmatter = null;
 
         Match match = s_frontmatterRegex.Match(content);
         if (!match.Success)
@@ -210,6 +206,9 @@ public sealed partial class AgentFileSkillsSource : AgentSkillsSource
         }
 
         string yamlContent = match.Groups[1].Value.Trim();
+
+        string? name = null;
+        string? description = null;
 
         foreach (Match kvMatch in s_yamlKeyValueRegex.Matches(yamlContent))
         {
@@ -232,9 +231,9 @@ public sealed partial class AgentFileSkillsSource : AgentSkillsSource
             return false;
         }
 
-        if (name.Length > MaxNameLength || !s_validNameRegex.IsMatch(name))
+        if (name.Length > AgentSkillFrontmatter.MaxNameLength || !s_validNameRegex.IsMatch(name))
         {
-            LogInvalidFieldValue(this._logger, skillFilePath, "name", $"Must be {MaxNameLength} characters or fewer, using only lowercase letters, numbers, and hyphens, and must not start or end with a hyphen or contain consecutive hyphens.");
+            LogInvalidFieldValue(this._logger, skillFilePath, "name", $"Must be {AgentSkillFrontmatter.MaxNameLength} characters or fewer, using only lowercase letters, numbers, and hyphens, and must not start or end with a hyphen or contain consecutive hyphens.");
             return false;
         }
 
@@ -259,12 +258,13 @@ public sealed partial class AgentFileSkillsSource : AgentSkillsSource
             return false;
         }
 
-        if (description.Length > MaxDescriptionLength)
+        if (description.Length > AgentSkillFrontmatter.MaxDescriptionLength)
         {
-            LogInvalidFieldValue(this._logger, skillFilePath, "description", $"Must be {MaxDescriptionLength} characters or fewer.");
+            LogInvalidFieldValue(this._logger, skillFilePath, "description", $"Must be {AgentSkillFrontmatter.MaxDescriptionLength} characters or fewer.");
             return false;
         }
 
+        frontmatter = new AgentSkillFrontmatter(name, description);
         return true;
     }
 

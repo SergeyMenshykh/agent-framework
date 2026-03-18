@@ -113,11 +113,11 @@ public sealed partial class AgentSkillsProvider : AIContextProvider, IDisposable
         string promptTemplate = this._options?.SkillsInstructionPrompt ?? DefaultSkillsInstructionPrompt;
 
         var sb = new StringBuilder();
-        foreach (var skill in this._skills.OrderBy(s => s.Name, StringComparer.Ordinal))
+        foreach (var skill in this._skills.OrderBy(s => s.Frontmatter.Name, StringComparer.Ordinal))
         {
             sb.AppendLine("  <skill>");
-            sb.AppendLine($"    <name>{SecurityElement.Escape(skill.Name)}</name>");
-            sb.AppendLine($"    <description>{SecurityElement.Escape(skill.Description)}</description>");
+            sb.AppendLine($"    <name>{SecurityElement.Escape(skill.Frontmatter.Name)}</name>");
+            sb.AppendLine($"    <description>{SecurityElement.Escape(skill.Frontmatter.Description)}</description>");
             sb.AppendLine("  </skill>");
         }
 
@@ -176,7 +176,7 @@ public sealed partial class AgentSkillsProvider : AIContextProvider, IDisposable
             return "Error: Skill name cannot be empty.";
         }
 
-        var skill = this._skills?.FirstOrDefault(skill => skill.Name == skillName);
+        var skill = this._skills?.FirstOrDefault(skill => skill.Frontmatter.Name == skillName);
         if (skill == null)
         {
             return $"Error: Skill '{skillName}' not found.";
@@ -199,7 +199,7 @@ public sealed partial class AgentSkillsProvider : AIContextProvider, IDisposable
             return "Error: Resource name cannot be empty.";
         }
 
-        var skill = this._skills?.FirstOrDefault(skill => skill.Name == skillName);
+        var skill = this._skills?.FirstOrDefault(skill => skill.Frontmatter.Name == skillName);
         if (skill == null)
         {
             return $"Error: Skill '{skillName}' not found.";
@@ -234,8 +234,7 @@ public sealed partial class AgentSkillsProvider : AIContextProvider, IDisposable
             return "Error: Script name cannot be empty.";
         }
 
-        var skill = this._skills?.FirstOrDefault(skill => skill.Name == skillName);
-        if (skill == null)
+        var skill = this._skills?.FirstOrDefault(skill => skill.Frontmatter.Name == skillName); if (skill == null)
         {
             return $"Error: Skill '{skillName}' not found.";
         }

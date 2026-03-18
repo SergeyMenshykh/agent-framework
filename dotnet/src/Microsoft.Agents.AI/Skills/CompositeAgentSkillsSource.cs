@@ -40,7 +40,7 @@ public sealed class CompositeAgentSkillsSource : AgentSkillsSource
             IReadOnlyList<AgentSkill> sourceSkills = await source.GetSkillsAsync(cancellationToken).ConfigureAwait(false);
             foreach (var skill in sourceSkills)
             {
-                if (seen.Add(skill.Name))
+                if (seen.Add(skill.Frontmatter.Name))
                 {
                     allSkills.Add(skill);
                 }

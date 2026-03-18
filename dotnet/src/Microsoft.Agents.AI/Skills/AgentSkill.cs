@@ -23,14 +23,13 @@ namespace Microsoft.Agents.AI;
 public abstract class AgentSkill
 {
     /// <summary>
-    /// Gets the skill name. Lowercase letters, numbers, and hyphens only; no leading, trailing, or consecutive hyphens.
+    /// Gets the frontmatter metadata for this skill.
     /// </summary>
-    public abstract string Name { get; }
-
-    /// <summary>
-    /// Gets the skill description. Used for discovery in the system prompt.
-    /// </summary>
-    public abstract string Description { get; }
+    /// <remarks>
+    /// Contains the L1 discovery metadata (name, description, license, compatibility, etc.)
+    /// as defined by the <see href="https://agentskills.io/specification">Agent Skills specification</see>.
+    /// </remarks>
+    public abstract AgentSkillFrontmatter Frontmatter { get; }
 
     /// <summary>
     /// Gets the full skill content.
@@ -41,26 +40,6 @@ public abstract class AgentSkill
     /// containing name, description, and body (instructions, resources, scripts).
     /// </remarks>
     public abstract string Content { get; }
-
-    /// <summary>
-    /// Gets or sets an optional license name or reference.
-    /// </summary>
-    public string? License { get; set; }
-
-    /// <summary>
-    /// Gets or sets optional compatibility information (max 500 chars).
-    /// </summary>
-    public string? Compatibility { get; set; }
-
-    /// <summary>
-    /// Gets or sets optional space-delimited list of pre-approved tools.
-    /// </summary>
-    public string? AllowedTools { get; set; }
-
-    /// <summary>
-    /// Gets or sets the arbitrary key-value metadata for this skill.
-    /// </summary>
-    public IDictionary<string, string>? Metadata { get; set; }
 
     /// <summary>
     /// Gets the resources associated with this skill, or <see langword="null"/> if none.

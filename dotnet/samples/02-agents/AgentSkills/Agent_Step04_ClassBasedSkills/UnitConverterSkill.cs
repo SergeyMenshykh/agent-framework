@@ -15,11 +15,9 @@ namespace Agent_Step04_ClassBasedSkills;
 public sealed class UnitConverterSkill : AgentClassSkill
 {
     /// <inheritdoc/>
-    public override string Name => "unit-converter";
-
-    /// <inheritdoc/>
-    public override string Description =>
-        "Convert between common units using a multiplication factor. Use when asked to convert miles, kilometers, pounds, or kilograms.";
+    public override AgentSkillFrontmatter Frontmatter { get; } = new(
+        "unit-converter",
+        "Convert between common units using a multiplication factor. Use when asked to convert miles, kilometers, pounds, or kilograms.");
 
     /// <inheritdoc/>
     public override string Instructions => """

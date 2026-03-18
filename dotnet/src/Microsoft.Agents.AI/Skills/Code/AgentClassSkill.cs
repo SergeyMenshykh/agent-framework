@@ -20,8 +20,7 @@ namespace Microsoft.Agents.AI;
 /// <code>
 /// public class PdfFormatterSkill : AgentClassSkill
 /// {
-///     public override string Name =&gt; "pdf-formatter";
-///     public override string Description =&gt; "Format documents as PDF.";
+///     public override AgentSkillFrontmatter Frontmatter { get; } = new("pdf-formatter", "Format documents as PDF.");
 ///     public override string Instructions =&gt; "Use this skill to format documents...";
 ///
 ///     public override IReadOnlyList&lt;AgentSkillResource&gt;? Resources { get; } =
@@ -51,7 +50,7 @@ public abstract class AgentClassSkill : AgentSkill
     /// Returns a synthesized XML document containing name, description, instructions, resources, and scripts.
     /// Override to provide custom content.
     /// </remarks>
-    public override string Content => SkillContentBuilder.BuildContent(this.Name, this.Description, SkillContentBuilder.BuildBody(this.Instructions, this.Resources, this.Scripts));
+    public override string Content => SkillContentBuilder.BuildContent(this.Frontmatter.Name, this.Frontmatter.Description, SkillContentBuilder.BuildBody(this.Instructions, this.Resources, this.Scripts));
 
     /// <inheritdoc/>
     public override IReadOnlyList<AgentSkillResource>? Resources => null;
