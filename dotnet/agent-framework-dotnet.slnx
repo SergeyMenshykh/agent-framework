@@ -88,6 +88,7 @@
     <Project Path="samples/02-agents/AgentSkills/Agent_Step04_ClassBasedSkills/Agent_Step04_ClassBasedSkills.csproj" />
     <Project Path="samples/02-agents/AgentSkills/Agent_Step05_MixedSkills/Agent_Step05_MixedSkills.csproj" />
     <Project Path="samples/02-agents/AgentSkills/Agent_Step06_CodeDefinedSkillsWithDI/Agent_Step06_CodeDefinedSkillsWithDI.csproj" />
+    <Project Path="samples/02-agents/AgentSkills/Agent_Step07_ClassBasedSkillsWithDI/Agent_Step07_ClassBasedSkillsWithDI.csproj" />
   </Folder>
   <Folder Name="/Samples/02-agents/AGUI/Step05_StateManagement/">
     <Project Path="samples/02-agents/AGUI/Step05_StateManagement/Client/Client.csproj" />

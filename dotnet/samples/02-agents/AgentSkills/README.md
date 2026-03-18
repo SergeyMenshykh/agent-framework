@@ -10,6 +10,7 @@ Samples demonstrating Agent Skills capabilities. Each sample shows a different w
 | [Agent_Step04_ClassBasedSkills](Agent_Step04_ClassBasedSkills/) | Define skills as reusable C# classes using `AgentClassSkill`. |
 | [Agent_Step05_MixedSkills](Agent_Step05_MixedSkills/) | Combine file-based, code-defined, and class-based skills in a single agent via `AgentSkillsProviderBuilder`. |
 | [Agent_Step06_CodeDefinedSkillsWithDI](Agent_Step06_CodeDefinedSkillsWithDI/) | Use Dependency Injection with skill scripts — resolve services from `IServiceProvider` at execution time. |
+| [Agent_Step07_ClassBasedSkillsWithDI](Agent_Step07_ClassBasedSkillsWithDI/) | Use Dependency Injection with class-based skills — resolve services from `IServiceProvider` in `AgentClassSkill` resources and scripts. |
 
 ## Key Concepts
 
