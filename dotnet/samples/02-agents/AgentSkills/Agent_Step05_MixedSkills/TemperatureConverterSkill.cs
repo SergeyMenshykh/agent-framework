@@ -28,7 +28,6 @@ public sealed class TemperatureConverterSkill : AgentClassSkill
     public override IReadOnlyList<AgentSkillResource>? Resources { get; } =
     [
         new AgentCodeSkillResource(
-            "temperature-conversion-formulas",
             """
             # Temperature Conversion Formulas
 
@@ -38,7 +37,8 @@ public sealed class TemperatureConverterSkill : AgentClassSkill
             | Celsius     | Fahrenheit  | °F = (°C × 9/5) + 32     |
             | Celsius     | Kelvin      | K = °C + 273.15           |
             | Kelvin      | Celsius     | °C = K − 273.15           |
-            """),
+            """,
+            "temperature-conversion-formulas"),
     ];
 
     /// <inheritdoc/>

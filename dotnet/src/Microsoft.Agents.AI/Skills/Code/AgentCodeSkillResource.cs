@@ -21,10 +21,10 @@ public sealed class AgentCodeSkillResource : AgentSkillResource
     /// <summary>
     /// Initializes a new instance of the <see cref="AgentCodeSkillResource"/> class with a static value.
     /// </summary>
-    /// <param name="name">The resource name.</param>
     /// <param name="value">The static resource value.</param>
+    /// <param name="name">The resource name.</param>
     /// <param name="description">An optional description of the resource.</param>
-    public AgentCodeSkillResource(string name, object? value, string? description = null)
+    public AgentCodeSkillResource(object value, string name, string? description = null)
         : base(name, description)
     {
         this._staticValue = value;
@@ -33,10 +33,10 @@ public sealed class AgentCodeSkillResource : AgentSkillResource
     /// <summary>
     /// Initializes a new instance of the <see cref="AgentCodeSkillResource"/> class with a dynamic value.
     /// </summary>
+    /// <param name="handler">A method that produces the resource value when requested.</param>
     /// <param name="name">The resource name.</param>
-    /// <param name="handler"></param>
     /// <param name="description">An optional description of the resource.</param>
-    public AgentCodeSkillResource(string name, Delegate handler, string? description = null)
+    public AgentCodeSkillResource(Delegate handler, string name, string? description = null)
         : base(name, description)
     {
         this._function = AIFunctionFactory.Create(handler, name: this.Name);

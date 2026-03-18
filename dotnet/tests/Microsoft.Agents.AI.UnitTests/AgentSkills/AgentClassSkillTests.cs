@@ -156,7 +156,7 @@ public sealed class AgentClassSkillTests
 
         public override IReadOnlyList<AgentSkillResource>? Resources { get; } =
         [
-            new AgentCodeSkillResource("test-resource", "resource content"),
+            new AgentCodeSkillResource("resource content", "test-resource"),
         ];
 
         public override IReadOnlyList<AgentSkillScript>? Scripts { get; } =
@@ -176,7 +176,7 @@ public sealed class AgentClassSkillTests
 
         public override IReadOnlyList<AgentSkillResource>? Resources { get; } =
         [
-            new AgentCodeSkillResource("data", "some data"),
+            new AgentCodeSkillResource("some data", "data"),
         ];
     }
 

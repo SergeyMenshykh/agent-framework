@@ -34,11 +34,11 @@ public sealed class UnitConverterSkill : AgentClassSkill
     public override IReadOnlyList<AgentSkillResource>? Resources { get; } =
     [
         // Dynamic resource with DI: resolves ConversionRateService to build conversion table
-        new AgentCodeSkillResource("conversion-tables", (IServiceProvider serviceProvider) =>
+        new AgentCodeSkillResource((IServiceProvider serviceProvider) =>
         {
             var rateService = serviceProvider.GetRequiredService<ConversionRateService>();
             return rateService.GetConversionTables();
-        }),
+        }, "conversion-tables"),
     ];
 
     /// <inheritdoc/>

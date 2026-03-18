@@ -58,7 +58,7 @@ public sealed class AgentCodeSkill : AgentSkill
     /// <returns>This instance, for chaining.</returns>
     public AgentCodeSkill AddResource(object value, string name, string? description = null)
     {
-        this._resources.Add(new AgentCodeSkillResource(name, value, description));
+        this._resources.Add(new AgentCodeSkillResource(value, name, description));
         return this;
     }
 
@@ -72,7 +72,7 @@ public sealed class AgentCodeSkill : AgentSkill
     /// <returns>This instance, for chaining.</returns>
     public AgentCodeSkill AddResource(Delegate handler, string name, string? description = null)
     {
-        this._resources.Add(new AgentCodeSkillResource(name, handler, description));
+        this._resources.Add(new AgentCodeSkillResource(handler, name, description));
         return this;
     }
 

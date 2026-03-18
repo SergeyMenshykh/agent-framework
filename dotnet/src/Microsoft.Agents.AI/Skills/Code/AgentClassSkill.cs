@@ -25,7 +25,7 @@ namespace Microsoft.Agents.AI;
 ///
 ///     public override IReadOnlyList&lt;AgentSkillResource&gt;? Resources { get; } =
 ///     [
-///         new AgentCodeSkillResource("template", "Use this template..."),
+///         new AgentCodeSkillResource("Use this template...", "template"),
 ///     ];
 ///
 ///     public override IReadOnlyList&lt;AgentSkillScript&gt;? Scripts { get; } =

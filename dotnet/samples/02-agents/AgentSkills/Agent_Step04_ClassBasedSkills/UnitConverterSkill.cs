@@ -32,7 +32,6 @@ public sealed class UnitConverterSkill : AgentClassSkill
     public override IReadOnlyList<AgentSkillResource>? Resources { get; } =
     [
         new AgentCodeSkillResource(
-            "conversion-tables",
             """
             # Conversion Tables
 
@@ -44,7 +43,8 @@ public sealed class UnitConverterSkill : AgentClassSkill
             | kilometers  | miles       | 0.621371 |
             | pounds      | kilograms   | 0.453592 |
             | kilograms   | pounds      | 2.20462  |
-            """),
+            """,
+            "conversion-tables"),
     ];
 
     /// <inheritdoc/>
