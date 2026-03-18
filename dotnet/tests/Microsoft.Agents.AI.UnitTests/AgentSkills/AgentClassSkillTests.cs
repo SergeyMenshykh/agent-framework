@@ -103,6 +103,21 @@ public sealed class AgentClassSkillTests
     }
 
     [Fact]
+    public async Task AgentClassSkillsSource_ExcludesSkillsWithInvalidFrontmatter()
+    {
+        // Arrange
+        var skills = new AgentClassSkill[] { new MinimalClassSkill(), new InvalidNameClassSkill() };
+        var source = new AgentClassSkillsSource(skills);
+
+        // Act
+        var result = await source.GetSkillsAsync(CancellationToken.None);
+
+        // Assert
+        Assert.Single(result);
+        Assert.Equal("minimal", result[0].Frontmatter.Name);
+    }
+
+    [Fact]
     public void SkillWithOnlyResources_HasNullScripts()
     {
         // Arrange
@@ -175,6 +190,13 @@ public sealed class AgentClassSkillTests
         [
             new AgentCodeSkillScript((string input) => input.ToUpperInvariant(), "ToUpper"),
         ];
+    }
+
+    private sealed class InvalidNameClassSkill : AgentClassSkill
+    {
+        public override AgentSkillFrontmatter Frontmatter { get; } = new("INVALID-NAME", "An invalid skill.");
+
+        public override string Instructions => "Body.";
     }
 
     #endregion

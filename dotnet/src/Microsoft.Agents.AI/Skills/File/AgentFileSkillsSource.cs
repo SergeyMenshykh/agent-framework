@@ -43,10 +43,6 @@ public sealed partial class AgentFileSkillsSource : AgentSkillsSource
     // Accepts single or double quotes; the lazy quantifier trims trailing whitespace on unquoted values.
     private static readonly Regex s_yamlKeyValueRegex = new(@"^\s*(\w+)\s*:\s*(?:[""'](.+?)[""']|(.+?))\s*$", RegexOptions.Multiline | RegexOptions.Compiled, TimeSpan.FromSeconds(5));
 
-    // Validates skill names: lowercase letters, numbers, and hyphens only;
-    // must not start or end with a hyphen; must not contain consecutive hyphens.
-    private static readonly Regex s_validNameRegex = new("^[a-z0-9]([a-z0-9]*-[a-z0-9])*[a-z0-9]*$", RegexOptions.Compiled);
-
     private readonly IReadOnlyList<string> _skillPaths;
     private readonly HashSet<string> _allowedResourceExtensions;
     private readonly AgentFileSkillScriptExecutor? _scriptExecutor;
@@ -225,46 +221,30 @@ public sealed partial class AgentFileSkillsSource : AgentSkillsSource
             }
         }
 
-        if (string.IsNullOrWhiteSpace(name))
+        if (!AgentSkillFrontmatterValidator.Validate(name, description, out string? validationReason))
         {
-            LogMissingFrontmatterField(this._logger, skillFilePath, "name");
+            LogInvalidFieldValue(this._logger, skillFilePath, "frontmatter", validationReason);
             return false;
         }
 
-        if (name.Length > AgentSkillFrontmatter.MaxNameLength || !s_validNameRegex.IsMatch(name))
-        {
-            LogInvalidFieldValue(this._logger, skillFilePath, "name", $"Must be {AgentSkillFrontmatter.MaxNameLength} characters or fewer, using only lowercase letters, numbers, and hyphens, and must not start or end with a hyphen or contain consecutive hyphens.");
-            return false;
-        }
+        frontmatter = new AgentSkillFrontmatter(name!, description!);
 
         // skillFilePath is e.g. "/skills/my-skill/SKILL.md".
         // GetDirectoryName strips the filename → "/skills/my-skill".
         // GetFileName then extracts the last segment → "my-skill".
         // This gives us the skill's parent directory name to validate against the frontmatter name.
         string directoryName = Path.GetFileName(Path.GetDirectoryName(skillFilePath)) ?? string.Empty;
-        if (!string.Equals(name, directoryName, StringComparison.Ordinal))
+        if (!string.Equals(frontmatter.Name, directoryName, StringComparison.Ordinal))
         {
             if (this._logger.IsEnabled(LogLevel.Error))
             {
-                LogNameDirectoryMismatch(this._logger, SanitizePathForLog(skillFilePath), name, SanitizePathForLog(directoryName));
+                LogNameDirectoryMismatch(this._logger, SanitizePathForLog(skillFilePath), frontmatter.Name, SanitizePathForLog(directoryName));
             }
 
+            frontmatter = null;
             return false;
         }
 
-        if (string.IsNullOrWhiteSpace(description))
-        {
-            LogMissingFrontmatterField(this._logger, skillFilePath, "description");
-            return false;
-        }
-
-        if (description.Length > AgentSkillFrontmatter.MaxDescriptionLength)
-        {
-            LogInvalidFieldValue(this._logger, skillFilePath, "description", $"Must be {AgentSkillFrontmatter.MaxDescriptionLength} characters or fewer.");
-            return false;
-        }
-
-        frontmatter = new AgentSkillFrontmatter(name, description);
         return true;
     }
 
@@ -506,9 +486,6 @@ public sealed partial class AgentFileSkillsSource : AgentSkillsSource
 
     [LoggerMessage(LogLevel.Error, "SKILL.md at '{SkillFilePath}' does not contain valid YAML frontmatter delimited by '---'")]
     private static partial void LogInvalidFrontmatter(ILogger logger, string skillFilePath);
-
-    [LoggerMessage(LogLevel.Error, "SKILL.md at '{SkillFilePath}' is missing a '{FieldName}' field in frontmatter")]
-    private static partial void LogMissingFrontmatterField(ILogger logger, string skillFilePath, string fieldName);
 
     [LoggerMessage(LogLevel.Error, "SKILL.md at '{SkillFilePath}' has an invalid '{FieldName}' value: {Reason}")]
     private static partial void LogInvalidFieldValue(ILogger logger, string skillFilePath, string fieldName, string reason);

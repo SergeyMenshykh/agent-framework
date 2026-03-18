@@ -1,9 +1,7 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 
-using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using System.Text.RegularExpressions;
 using Microsoft.Shared.DiagnosticIds;
 using Microsoft.Shared.Diagnostics;
 
@@ -19,29 +17,14 @@ namespace Microsoft.Agents.AI;
 /// It contains the minimal metadata needed to advertise a skill in the system prompt
 /// without loading the full skill content.
 /// </para>
+/// <para>
+/// This class is a plain data holder with no validation logic.
+/// Use <see cref="AgentSkillFrontmatterValidator"/> to validate frontmatter before use.
+/// </para>
 /// </remarks>
 [Experimental(DiagnosticIds.Experiments.AgentsAIExperiments)]
 public sealed class AgentSkillFrontmatter
 {
-    /// <summary>
-    /// Maximum allowed length for the <see cref="Name"/> field.
-    /// </summary>
-    public const int MaxNameLength = 64;
-
-    /// <summary>
-    /// Maximum allowed length for the <see cref="Description"/> field.
-    /// </summary>
-    public const int MaxDescriptionLength = 1024;
-
-    /// <summary>
-    /// Maximum allowed length for the <see cref="Compatibility"/> field.
-    /// </summary>
-    public const int MaxCompatibilityLength = 500;
-
-    // Validates skill names: lowercase letters, numbers, and hyphens only;
-    // must not start or end with a hyphen; must not contain consecutive hyphens.
-    private static readonly Regex s_validNameRegex = new("^[a-z0-9]([a-z0-9]*-[a-z0-9])*[a-z0-9]*$", RegexOptions.Compiled);
-
     /// <summary>
     /// Initializes a new instance of the <see cref="AgentSkillFrontmatter"/> class.
     /// </summary>
@@ -49,8 +32,8 @@ public sealed class AgentSkillFrontmatter
     /// <param name="description">Skill description for discovery.</param>
     public AgentSkillFrontmatter(string name, string description)
     {
-        this.Name = ValidateName(Throw.IfNullOrWhitespace(name));
-        this.Description = ValidateDescription(Throw.IfNullOrWhitespace(description));
+        this.Name = Throw.IfNullOrWhitespace(name);
+        this.Description = Throw.IfNullOrWhitespace(description);
     }
 
     /// <summary>
@@ -82,37 +65,4 @@ public sealed class AgentSkillFrontmatter
     /// Gets or sets the arbitrary key-value metadata for this skill.
     /// </summary>
     public IDictionary<string, string>? Metadata { get; set; }
-
-    /// <summary>
-    /// Validates and returns the name, or throws if invalid.
-    /// </summary>
-    private static string ValidateName(string name)
-    {
-        if (name.Length > MaxNameLength)
-        {
-            throw new ArgumentException($"Skill name must be {MaxNameLength} characters or fewer.", nameof(name));
-        }
-
-        if (!s_validNameRegex.IsMatch(name))
-        {
-            throw new ArgumentException(
-                "Skill name must use only lowercase letters, numbers, and hyphens, and must not start or end with a hyphen or contain consecutive hyphens.",
-                nameof(name));
-        }
-
-        return name;
-    }
-
-    /// <summary>
-    /// Validates and returns the description, or throws if invalid.
-    /// </summary>
-    private static string ValidateDescription(string description)
-    {
-        if (description.Length > MaxDescriptionLength)
-        {
-            throw new ArgumentException($"Skill description must be {MaxDescriptionLength} characters or fewer.", nameof(description));
-        }
-
-        return description;
-    }
 }

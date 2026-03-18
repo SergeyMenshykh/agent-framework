@@ -5,6 +5,8 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Shared.DiagnosticIds;
 using Microsoft.Shared.Diagnostics;
 
@@ -13,25 +15,46 @@ namespace Microsoft.Agents.AI;
 /// <summary>
 /// A skill source that holds code-defined <see cref="AgentCodeSkill"/> instances.
 /// </summary>
+/// <remarks>
+/// Skills with invalid frontmatter are excluded at load time and the reason is logged.
+/// </remarks>
 [Experimental(DiagnosticIds.Experiments.AgentsAIExperiments)]
-public sealed class AgentCodeSkillsSource : AgentSkillsSource
+public sealed partial class AgentCodeSkillsSource : AgentSkillsSource
 {
     private readonly IReadOnlyList<AgentCodeSkill> _skills;
+    private readonly ILogger _logger;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="AgentCodeSkillsSource"/> class.
     /// </summary>
     /// <param name="skills">The code-defined skills to include in this source.</param>
-    public AgentCodeSkillsSource(IEnumerable<AgentCodeSkill> skills)
+    /// <param name="loggerFactory">Optional logger factory for diagnostics.</param>
+    public AgentCodeSkillsSource(IEnumerable<AgentCodeSkill> skills, ILoggerFactory? loggerFactory = null)
     {
         _ = Throw.IfNull(skills);
+        this._logger = (loggerFactory ?? NullLoggerFactory.Instance).CreateLogger<AgentCodeSkillsSource>();
         this._skills = skills.ToList();
     }
 
     /// <inheritdoc/>
     public override Task<IReadOnlyList<AgentSkill>> GetSkillsAsync(CancellationToken cancellationToken = default)
     {
-        IReadOnlyList<AgentSkill> result = this._skills.ToList<AgentSkill>();
-        return Task.FromResult(result);
+        var result = new List<AgentSkill>();
+        foreach (var skill in this._skills)
+        {
+            if (AgentSkillFrontmatterValidator.Validate(skill.Frontmatter, out string? reason))
+            {
+                result.Add(skill);
+            }
+            else
+            {
+                LogInvalidFrontmatter(this._logger, skill.Frontmatter.Name, reason);
+            }
+        }
+
+        return Task.FromResult<IReadOnlyList<AgentSkill>>(result);
     }
+
+    [LoggerMessage(LogLevel.Error, "Code-defined skill '{SkillName}' has invalid frontmatter and was excluded: {Reason}")]
+    private static partial void LogInvalidFrontmatter(ILogger logger, string skillName, string reason);
 }
