@@ -222,7 +222,7 @@ public sealed partial class AgentSkillsProvider : AIContextProvider, IDisposable
         }
     }
 
-    private async Task<object?> RunSkillScriptAsync(string skillName, string scriptName, IDictionary<string, object?>? arguments, CancellationToken cancellationToken = default)
+    private async Task<object?> RunSkillScriptAsync(string skillName, string scriptName, IDictionary<string, object?>? arguments, IServiceProvider? serviceProvider, CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrWhiteSpace(skillName))
         {
@@ -247,7 +247,7 @@ public sealed partial class AgentSkillsProvider : AIContextProvider, IDisposable
 
         try
         {
-            return await script.ExecuteAsync(skill, new AIFunctionArguments(arguments), cancellationToken).ConfigureAwait(false);
+            return await script.ExecuteAsync(skill, new AIFunctionArguments(arguments) { Services = serviceProvider }, cancellationToken).ConfigureAwait(false);
         }
         catch (Exception ex)
         {
