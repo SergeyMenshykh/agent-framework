@@ -1,12 +1,12 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 
 // This sample demonstrates how to use Dependency Injection (DI) with Agent Skills.
-// Skill script functions can resolve services from the DI container via IServiceProvider,
-// enabling clean separation of concerns and testability.
+// Skill script and resource functions can resolve services from the DI container via
+// IServiceProvider, enabling clean separation of concerns and testability.
 //
 // The sample registers a ConversionRateService in the DI container. A code-defined skill
-// script then resolves this service to look up live conversion rates at execution time,
-// rather than relying on hardcoded factors.
+// resource resolves this service to list supported conversions dynamically, and a skill
+// script resolves it to look up live conversion rates at execution time.
 
 using System.Text.Json;
 using Azure.AI.OpenAI;
@@ -20,39 +20,28 @@ string endpoint = Environment.GetEnvironmentVariable("AZURE_OPENAI_ENDPOINT") ??
 string deploymentName = Environment.GetEnvironmentVariable("AZURE_OPENAI_DEPLOYMENT_NAME") ?? "gpt-4o-mini";
 
 // --- Build the code-defined skill ---
-// The skill uses DI to resolve ConversionRateService in its script function.
+// The skill uses DI to resolve ConversionRateService in both its resource and script functions.
 var unitConverterSkill = new AgentCodeSkill(
     name: "unit-converter",
     description: "Convert between common units. Use when asked to convert miles, kilometers, pounds, or kilograms.",
     instructions: """
         Use this skill when the user asks to convert between units.
 
-        1. Use the convert script, passing the value and the source/target unit names.
-           The script will look up the conversion rate from the registered rate service.
+        1. Review the conversion-tables resource to find the factor for the requested conversion.
+        2. Check the conversion-policy resource for rounding and formatting rules.
+        3. Use the convert script, passing the value and factor from the table.
         """)
-    // Static resource: lists which conversions are supported
-    .AddResource(
-        "supported-conversions",
-        """
-        # Supported Conversions
-
-        | From        | To          |
-        |-------------|-------------|
-        | miles       | kilometers  |
-        | kilometers  | miles       |
-        | pounds      | kilograms   |
-        | kilograms   | pounds      |
-        """)
-    // Script with DI: resolves ConversionRateService from the service provider
-    .AddScript((double value, string fromUnit, string toUnit, IServiceProvider serviceProvider) =>
+    // Dynamic resource with DI: resolves ConversionRateService to build conversion table
+    .AddResource("conversion-tables", (IServiceProvider serviceProvider) =>
     {
-        // Resolve the conversion rate service from the DI container
         var rateService = serviceProvider.GetRequiredService<ConversionRateService>();
-
-        double factor = rateService.GetRate(fromUnit, toUnit);
-        double result = Math.Round(value * factor, 4);
-
-        return JsonSerializer.Serialize(new { value, fromUnit, toUnit, factor, result });
+        return rateService.GetConversionTables();
+    })
+    // Script with DI: resolves ConversionRateService to perform the conversion
+    .AddScript((double value, double factor, IServiceProvider serviceProvider) =>
+    {
+        var rateService = serviceProvider.GetRequiredService<ConversionRateService>();
+        return rateService.Convert(value, factor);
     }, "convert");
 
 // --- Skills Provider ---
@@ -100,25 +89,29 @@ Console.WriteLine($"Agent: {response.Text}");
 /// </summary>
 internal sealed class ConversionRateService
 {
-    private static readonly Dictionary<(string From, string To), double> s_rates = new()
-    {
-        [("MILES", "KILOMETERS")] = 1.60934,
-        [("KILOMETERS", "MILES")] = 0.621371,
-        [("POUNDS", "KILOGRAMS")] = 0.453592,
-        [("KILOGRAMS", "POUNDS")] = 2.20462,
-    };
+    /// <summary>
+    /// Returns a static markdown table of all supported conversions with factors.
+    /// </summary>
+    public string GetConversionTables() =>
+        """
+        # Conversion Tables
+
+        Formula: **result = value × factor**
+
+        | From        | To          | Factor   |
+        |-------------|-------------|----------|
+        | miles       | kilometers  | 1.60934  |
+        | kilometers  | miles       | 0.621371 |
+        | pounds      | kilograms   | 0.453592 |
+        | kilograms   | pounds      | 2.20462  |
+        """;
 
     /// <summary>
-    /// Gets the conversion factor for the specified unit pair.
+    /// Converts a value by the given factor and returns a JSON result.
     /// </summary>
-    public double GetRate(string fromUnit, string toUnit)
+    public string Convert(double value, double factor)
     {
-        var key = (fromUnit.ToUpperInvariant(), toUnit.ToUpperInvariant());
-        if (s_rates.TryGetValue(key, out double rate))
-        {
-            return rate;
-        }
-
-        throw new ArgumentException($"No conversion rate found for {fromUnit} → {toUnit}.");
+        double result = Math.Round(value * factor, 4);
+        return JsonSerializer.Serialize(new { value, factor, result });
     }
 }

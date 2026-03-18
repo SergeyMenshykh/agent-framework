@@ -5,6 +5,7 @@ using System.IO;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.AI;
 using Microsoft.Shared.DiagnosticIds;
 using Microsoft.Shared.Diagnostics;
 
@@ -33,7 +34,11 @@ public sealed class AgentFileSkillResource : AgentSkillResource
     public string FullPath { get; }
 
     /// <inheritdoc/>
-    public override async Task<object?> ReadAsync(CancellationToken cancellationToken = default)
+#pragma warning disable CA1725 // Parameter names should match base declaration
+#pragma warning disable RCS1168 // Parameter name differs from base name
+    public override async Task<object?> ReadAsync(AIFunctionArguments _, CancellationToken cancellationToken = default)
+#pragma warning restore RCS1168 // Parameter name differs from base name
+#pragma warning restore CA1725 // Parameter names should match base declaration
     {
 #if NET8_0_OR_GREATER
         return await File.ReadAllTextAsync(this.FullPath, Encoding.UTF8, cancellationToken).ConfigureAwait(false);

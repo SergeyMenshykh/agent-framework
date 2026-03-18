@@ -187,7 +187,7 @@ public sealed partial class AgentSkillsProvider : AIContextProvider, IDisposable
         return skill.Content;
     }
 
-    private async Task<object?> ReadSkillResourceAsync(string skillName, string resourceName, CancellationToken cancellationToken = default)
+    private async Task<object?> ReadSkillResourceAsync(string skillName, string resourceName, IServiceProvider? serviceProvider, CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrWhiteSpace(skillName))
         {
@@ -213,7 +213,7 @@ public sealed partial class AgentSkillsProvider : AIContextProvider, IDisposable
 
         try
         {
-            return await resource.ReadAsync(cancellationToken).ConfigureAwait(false);
+            return await resource.ReadAsync(new AIFunctionArguments() { Services = serviceProvider }, cancellationToken).ConfigureAwait(false);
         }
         catch (Exception ex)
         {

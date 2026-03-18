@@ -3,6 +3,7 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.AI;
 using Microsoft.Shared.DiagnosticIds;
 using Microsoft.Shared.Diagnostics;
 
@@ -38,7 +39,8 @@ public abstract class AgentSkillResource
     /// <summary>
     /// Reads the resource content asynchronously.
     /// </summary>
+    /// <param name="arguments"></param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>The resource content.</returns>
-    public abstract Task<object?> ReadAsync(CancellationToken cancellationToken = default);
+    public abstract Task<object?> ReadAsync(AIFunctionArguments arguments, CancellationToken cancellationToken = default);
 }

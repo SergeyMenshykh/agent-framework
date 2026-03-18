@@ -4,6 +4,7 @@ using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.AI;
 using Microsoft.Shared.DiagnosticIds;
 
 namespace Microsoft.Agents.AI;
@@ -14,9 +15,8 @@ namespace Microsoft.Agents.AI;
 [Experimental(DiagnosticIds.Experiments.AgentsAIExperiments)]
 public sealed class AgentCodeSkillResource : AgentSkillResource
 {
-    private readonly Func<CancellationToken, Task<object?>>? _dynamicValue;
+    private readonly AIFunction? _function;
     private readonly object? _staticValue;
-    private readonly bool _isDynamic;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="AgentCodeSkillResource"/> class with a static value.
@@ -28,28 +28,26 @@ public sealed class AgentCodeSkillResource : AgentSkillResource
         : base(name, description)
     {
         this._staticValue = value;
-        this._isDynamic = false;
     }
 
     /// <summary>
     /// Initializes a new instance of the <see cref="AgentCodeSkillResource"/> class with a dynamic value.
     /// </summary>
     /// <param name="name">The resource name.</param>
-    /// <param name="valueFactory">A function that produces the resource value when requested.</param>
+    /// <param name="handler"></param>
     /// <param name="description">An optional description of the resource.</param>
-    public AgentCodeSkillResource(string name, Func<CancellationToken, Task<object?>> valueFactory, string? description = null)
+    public AgentCodeSkillResource(string name, Delegate handler, string? description = null)
         : base(name, description)
     {
-        this._dynamicValue = valueFactory ?? throw new ArgumentNullException(nameof(valueFactory));
-        this._isDynamic = true;
+        this._function = AIFunctionFactory.Create(handler, name: this.Name);
     }
 
     /// <inheritdoc/>
-    public override async Task<object?> ReadAsync(CancellationToken cancellationToken = default)
+    public override async Task<object?> ReadAsync(AIFunctionArguments arguments, CancellationToken cancellationToken = default)
     {
-        if (this._isDynamic)
+        if (this._function is not null)
         {
-            return await this._dynamicValue!(cancellationToken).ConfigureAwait(false);
+            return await this._function.InvokeAsync(arguments, cancellationToken).ConfigureAwait(false);
         }
 
         return this._staticValue;

@@ -47,17 +47,16 @@ var unitConverterSkill = new AgentCodeSkill(
     // 2. Dynamic Resource: conversion policy (computed at runtime)
     .AddResource(
         "conversion-policy",
-        (CancellationToken _) =>
+        () =>
         {
             const int Precision = 4;
-            object result = $"""
+            return $"""
                 # Conversion Policy
 
                 **Decimal places:** {Precision}
                 **Format:** Always show both the original and converted values with units
                 **Generated at:** {DateTime.UtcNow:O}
                 """;
-            return Task.FromResult<object?>(result);
         })
     // 3. Code Script: convert
     .AddScript((double value, double factor) =>

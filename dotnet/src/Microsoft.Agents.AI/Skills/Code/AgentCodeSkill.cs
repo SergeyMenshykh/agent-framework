@@ -3,8 +3,6 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.Shared.DiagnosticIds;
 using Microsoft.Shared.Diagnostics;
 
@@ -14,7 +12,7 @@ namespace Microsoft.Agents.AI;
 /// A skill defined entirely in code with static/dynamic resources and delegate-backed scripts.
 /// </summary>
 /// <remarks>
-/// Use <see cref="AddResource(string, object?, string?)"/>, <see cref="AddResource(string, Func{CancellationToken, Task{object}}, string?)"/>,
+/// Use <see cref="AddResource(string, object?, string?)"/>, <see cref="AddResource(string, Delegate, string?)"/>,
 /// and <see cref="AddScript(Delegate, string, string?)"/> to register resources and scripts after construction.
 /// </remarks>
 [Experimental(DiagnosticIds.Experiments.AgentsAIExperiments)]
@@ -65,15 +63,16 @@ public sealed class AgentCodeSkill : AgentSkill
     }
 
     /// <summary>
-    /// Registers a dynamic resource with this skill, computed at runtime via a factory delegate.
+    /// Registers a dynamic resource with this skill, backed by a C# delegate.
+    /// The delegate's parameters and return type are automatically marshaled via <c>AIFunctionFactory</c>.
     /// </summary>
     /// <param name="name">The resource name.</param>
-    /// <param name="valueFactory">A function that produces the resource value when requested.</param>
+    /// <param name="handler">A method that produces the resource value when requested.</param>
     /// <param name="description">An optional description of the resource.</param>
     /// <returns>This instance, for chaining.</returns>
-    public AgentCodeSkill AddResource(string name, Func<CancellationToken, Task<object?>> valueFactory, string? description = null)
+    public AgentCodeSkill AddResource(string name, Delegate handler, string? description = null)
     {
-        this._resources.Add(new AgentCodeSkillResource(name, valueFactory, description));
+        this._resources.Add(new AgentCodeSkillResource(name, handler, description));
         return this;
     }
 
