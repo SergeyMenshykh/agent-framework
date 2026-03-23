@@ -6,9 +6,7 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
-using System.Net.ServerSentEvents;
 using System.Text;
-using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
@@ -89,14 +87,17 @@ public sealed class A2AAgentTests : IDisposable
     public async Task RunAsync_WithValidUserMessage_RunsSuccessfullyAsync()
     {
         // Arrange
-        this._handler.ResponseToReturn = new AgentMessage
+        this._handler.ResponseToReturn = new SendMessageResponse
         {
-            MessageId = "response-123",
-            Role = MessageRole.Agent,
-            Parts =
-            [
-                new TextPart { Text = "Hello! How can I help you today?" }
-            ]
+            Message = new Message
+            {
+                MessageId = "response-123",
+                Role = Role.Agent,
+                Parts =
+                [
+                    new Part { Text = "Hello! How can I help you today?" }
+                ]
+            }
         };
 
         var inputMessages = new List<ChatMessage>
@@ -108,11 +109,11 @@ public sealed class A2AAgentTests : IDisposable
         var result = await this._agent.RunAsync(inputMessages);
 
         // Assert input message sent to A2AClient
-        var inputMessage = this._handler.CapturedMessageSendParams?.Message;
+        var inputMessage = this._handler.CapturedSendMessageRequest?.Message;
         Assert.NotNull(inputMessage);
         Assert.Single(inputMessage.Parts);
-        Assert.Equal(MessageRole.User, inputMessage.Role);
-        Assert.Equal("Hello, world!", ((TextPart)inputMessage.Parts[0]).Text);
+        Assert.Equal(Role.User, inputMessage.Role);
+        Assert.Equal("Hello, world!", inputMessage.Parts[0].Text);
 
         // Assert response from A2AClient is converted correctly
         Assert.NotNull(result);
@@ -120,8 +121,8 @@ public sealed class A2AAgentTests : IDisposable
         Assert.Equal("response-123", result.ResponseId);
 
         Assert.NotNull(result.RawRepresentation);
-        Assert.IsType<AgentMessage>(result.RawRepresentation);
-        Assert.Equal("response-123", ((AgentMessage)result.RawRepresentation).MessageId);
+        Assert.IsType<Message>(result.RawRepresentation);
+        Assert.Equal("response-123", ((Message)result.RawRepresentation).MessageId);
 
         Assert.Single(result.Messages);
         Assert.Equal(ChatRole.Assistant, result.Messages[0].Role);
@@ -133,15 +134,18 @@ public sealed class A2AAgentTests : IDisposable
     public async Task RunAsync_WithNewSession_UpdatesSessionConversationIdAsync()
     {
         // Arrange
-        this._handler.ResponseToReturn = new AgentMessage
+        this._handler.ResponseToReturn = new SendMessageResponse
         {
-            MessageId = "response-123",
-            Role = MessageRole.Agent,
-            Parts =
-            [
-                new TextPart { Text = "Response" }
-            ],
-            ContextId = "new-context-id"
+            Message = new Message
+            {
+                MessageId = "response-123",
+                Role = Role.Agent,
+                Parts =
+                [
+                    new Part { Text = "Response" }
+                ],
+                ContextId = "new-context-id"
+            }
         };
 
         var inputMessages = new List<ChatMessage>
@@ -177,7 +181,7 @@ public sealed class A2AAgentTests : IDisposable
         await this._agent.RunAsync(inputMessages, session);
 
         // Assert
-        var message = this._handler.CapturedMessageSendParams?.Message;
+        var message = this._handler.CapturedSendMessageRequest?.Message;
         Assert.NotNull(message);
         Assert.Equal("existing-context-id", message.ContextId);
     }
@@ -191,15 +195,18 @@ public sealed class A2AAgentTests : IDisposable
             new(ChatRole.User, "Test message")
         };
 
-        this._handler.ResponseToReturn = new AgentMessage
+        this._handler.ResponseToReturn = new SendMessageResponse
         {
-            MessageId = "response-123",
-            Role = MessageRole.Agent,
-            Parts =
-            [
-                new TextPart { Text = "Response" }
-            ],
-            ContextId = "different-context"
+            Message = new Message
+            {
+                MessageId = "response-123",
+                Role = Role.Agent,
+                Parts =
+                [
+                    new Part { Text = "Response" }
+                ],
+                ContextId = "different-context"
+            }
         };
 
         var session = await this._agent.CreateSessionAsync();
@@ -219,12 +226,15 @@ public sealed class A2AAgentTests : IDisposable
             new(ChatRole.User, "Hello, streaming!")
         };
 
-        this._handler.StreamingResponseToReturn = new AgentMessage()
+        this._handler.StreamingResponseToReturn = new StreamResponse
         {
-            MessageId = "stream-1",
-            Role = MessageRole.Agent,
-            Parts = [new TextPart { Text = "Hello" }],
-            ContextId = "stream-context"
+            Message = new Message
+            {
+                MessageId = "stream-1",
+                Role = Role.Agent,
+                Parts = [new Part { Text = "Hello" }],
+                ContextId = "stream-context"
+            }
         };
 
         // Act
@@ -238,11 +248,11 @@ public sealed class A2AAgentTests : IDisposable
         Assert.Single(updates);
 
         // Assert input message sent to A2AClient
-        var inputMessage = this._handler.CapturedMessageSendParams?.Message;
+        var inputMessage = this._handler.CapturedSendMessageRequest?.Message;
         Assert.NotNull(inputMessage);
         Assert.Single(inputMessage.Parts);
-        Assert.Equal(MessageRole.User, inputMessage.Role);
-        Assert.Equal("Hello, streaming!", ((TextPart)inputMessage.Parts[0]).Text);
+        Assert.Equal(Role.User, inputMessage.Role);
+        Assert.Equal("Hello, streaming!", inputMessage.Parts[0].Text);
 
         // Assert response from A2AClient is converted correctly
         Assert.Equal(ChatRole.Assistant, updates[0].Role);
@@ -251,8 +261,8 @@ public sealed class A2AAgentTests : IDisposable
         Assert.Equal(this._agent.Id, updates[0].AgentId);
         Assert.Equal("stream-1", updates[0].ResponseId);
         Assert.Equal(ChatFinishReason.Stop, updates[0].FinishReason);
-        Assert.IsType<AgentMessage>(updates[0].RawRepresentation);
-        Assert.Equal("stream-1", ((AgentMessage)updates[0].RawRepresentation!).MessageId);
+        Assert.IsType<Message>(updates[0].RawRepresentation);
+        Assert.Equal("stream-1", ((Message)updates[0].RawRepresentation!).MessageId);
     }
 
     [Fact]
@@ -264,12 +274,15 @@ public sealed class A2AAgentTests : IDisposable
             new(ChatRole.User, "Test streaming")
         };
 
-        this._handler.StreamingResponseToReturn = new AgentMessage()
+        this._handler.StreamingResponseToReturn = new StreamResponse
         {
-            MessageId = "stream-1",
-            Role = MessageRole.Agent,
-            Parts = [new TextPart { Text = "Response" }],
-            ContextId = "new-stream-context"
+            Message = new Message
+            {
+                MessageId = "stream-1",
+                Role = Role.Agent,
+                Parts = [new Part { Text = "Response" }],
+                ContextId = "new-stream-context"
+            }
         };
 
         var session = await this._agent.CreateSessionAsync();
@@ -294,7 +307,7 @@ public sealed class A2AAgentTests : IDisposable
             new(ChatRole.User, "Test streaming")
         };
 
-        this._handler.StreamingResponseToReturn = new AgentMessage();
+        this._handler.StreamingResponseToReturn = new StreamResponse { Message = new Message() };
 
         var session = await this._agent.CreateSessionAsync();
         var a2aSession = (A2AAgentSession)session;
@@ -307,7 +320,7 @@ public sealed class A2AAgentTests : IDisposable
         }
 
         // Assert
-        var message = this._handler.CapturedMessageSendParams?.Message;
+        var message = this._handler.CapturedSendMessageRequest?.Message;
         Assert.NotNull(message);
         Assert.Equal("existing-context-id", message.ContextId);
     }
@@ -325,12 +338,15 @@ public sealed class A2AAgentTests : IDisposable
             new(ChatRole.User, "Test streaming")
         };
 
-        this._handler.StreamingResponseToReturn = new AgentMessage()
+        this._handler.StreamingResponseToReturn = new StreamResponse
         {
-            MessageId = "stream-1",
-            Role = MessageRole.Agent,
-            Parts = [new TextPart { Text = "Response" }],
-            ContextId = "different-context"
+            Message = new Message
+            {
+                MessageId = "stream-1",
+                Role = Role.Agent,
+                Parts = [new Part { Text = "Response" }],
+                ContextId = "different-context"
+            }
         };
 
         // Act
@@ -346,12 +362,15 @@ public sealed class A2AAgentTests : IDisposable
     public async Task RunStreamingAsync_AllowsNonUserRoleMessagesAsync()
     {
         // Arrange
-        this._handler.StreamingResponseToReturn = new AgentMessage()
+        this._handler.StreamingResponseToReturn = new StreamResponse
         {
-            MessageId = "stream-1",
-            Role = MessageRole.Agent,
-            Parts = [new TextPart { Text = "Response" }],
-            ContextId = "new-stream-context"
+            Message = new Message
+            {
+                MessageId = "stream-1",
+                Role = Role.Agent,
+                Parts = [new Part { Text = "Response" }],
+                ContextId = "new-stream-context"
+            }
         };
 
         var inputMessages = new List<ChatMessage>
@@ -385,13 +404,13 @@ public sealed class A2AAgentTests : IDisposable
         await this._agent.RunAsync(inputMessages);
 
         // Assert
-        var message = this._handler.CapturedMessageSendParams?.Message;
+        var message = this._handler.CapturedSendMessageRequest?.Message;
         Assert.NotNull(message);
         Assert.Equal(2, message.Parts.Count);
-        Assert.IsType<TextPart>(message.Parts[0]);
-        Assert.Equal("Check this file:", ((TextPart)message.Parts[0]).Text);
-        Assert.IsType<FilePart>(message.Parts[1]);
-        Assert.Equal("https://example.com/file.pdf", ((FilePart)message.Parts[1]).File.Uri?.ToString());
+        Assert.Equal(PartContentCase.Text, message.Parts[0].ContentCase);
+        Assert.Equal("Check this file:", message.Parts[0].Text);
+        Assert.Equal(PartContentCase.Url, message.Parts[1].ContentCase);
+        Assert.Equal("https://example.com/file.pdf", message.Parts[1].Url);
     }
 
     [Fact]
@@ -413,10 +432,11 @@ public sealed class A2AAgentTests : IDisposable
     public async Task RunAsync_WithContinuationToken_CallsGetTaskAsyncAsync()
     {
         // Arrange
-        this._handler.ResponseToReturn = new AgentTask
+        this._handler.AgentTaskToReturn = new AgentTask
         {
             Id = "task-123",
-            ContextId = "context-123"
+            ContextId = "context-123",
+            Status = new() { State = TaskState.Submitted }
         };
 
         var options = new AgentRunOptions { ContinuationToken = new A2AContinuationToken("task-123") };
@@ -425,19 +445,22 @@ public sealed class A2AAgentTests : IDisposable
         await this._agent.RunAsync([], options: options);
 
         // Assert
-        Assert.Equal("tasks/get", this._handler.CapturedJsonRpcRequest?.Method);
-        Assert.Equal("task-123", this._handler.CapturedTaskIdParams?.Id);
+        Assert.Equal("GetTask", this._handler.CapturedJsonRpcRequest?.Method);
+        Assert.Equal("task-123", this._handler.CapturedGetTaskRequest?.Id);
     }
 
     [Fact]
     public async Task RunAsync_WithTaskInSessionAndMessage_AddTaskAsReferencesToMessageAsync()
     {
         // Arrange
-        this._handler.ResponseToReturn = new AgentMessage
+        this._handler.ResponseToReturn = new SendMessageResponse
         {
-            MessageId = "response-123",
-            Role = MessageRole.Agent,
-            Parts = [new TextPart { Text = "Response to task" }]
+            Message = new Message
+            {
+                MessageId = "response-123",
+                Role = Role.Agent,
+                Parts = [new Part { Text = "Response to task" }]
+            }
         };
 
         var session = (A2AAgentSession)await this._agent.CreateSessionAsync();
@@ -449,7 +472,7 @@ public sealed class A2AAgentTests : IDisposable
         await this._agent.RunAsync(inputMessage, session);
 
         // Assert
-        var message = this._handler.CapturedMessageSendParams?.Message;
+        var message = this._handler.CapturedSendMessageRequest?.Message;
         Assert.Null(message?.TaskId);
         Assert.NotNull(message?.ReferenceTaskIds);
         Assert.Contains("task-123", message.ReferenceTaskIds);
@@ -459,12 +482,12 @@ public sealed class A2AAgentTests : IDisposable
     public async Task RunAsync_WithAgentTask_UpdatesSessionTaskIdAsync()
     {
         // Arrange
-        this._handler.ResponseToReturn = new AgentTask
+        this._handler.ResponseToReturn = new SendMessageResponse { Task = new AgentTask
         {
             Id = "task-456",
             ContextId = "context-789",
             Status = new() { State = TaskState.Submitted }
-        };
+        } };
 
         var session = await this._agent.CreateSessionAsync();
 
@@ -480,7 +503,7 @@ public sealed class A2AAgentTests : IDisposable
     public async Task RunAsync_WithAgentTaskResponse_ReturnsTaskResponseCorrectlyAsync()
     {
         // Arrange
-        this._handler.ResponseToReturn = new AgentTask
+        this._handler.ResponseToReturn = new SendMessageResponse { Task = new AgentTask
         {
             Id = "task-789",
             ContextId = "context-456",
@@ -490,7 +513,7 @@ public sealed class A2AAgentTests : IDisposable
                 { "key1", JsonSerializer.SerializeToElement("value1") },
                 { "count", JsonSerializer.SerializeToElement(42) }
             }
-        };
+        } };
 
         var session = await this._agent.CreateSessionAsync();
 
@@ -532,12 +555,12 @@ public sealed class A2AAgentTests : IDisposable
     public async Task RunAsync_WithVariousTaskStates_ReturnsCorrectTokenAsync(TaskState taskState)
     {
         // Arrange
-        this._handler.ResponseToReturn = new AgentTask
+        this._handler.ResponseToReturn = new SendMessageResponse { Task = new AgentTask
         {
             Id = "task-123",
             ContextId = "context-123",
             Status = new() { State = taskState }
-        };
+        } };
 
         // Act
         var result = await this._agent.RunAsync("Test message");
@@ -587,11 +610,14 @@ public sealed class A2AAgentTests : IDisposable
     public async Task RunStreamingAsync_WithTaskInSessionAndMessage_AddTaskAsReferencesToMessageAsync()
     {
         // Arrange
-        this._handler.StreamingResponseToReturn = new AgentMessage
+        this._handler.StreamingResponseToReturn = new StreamResponse
         {
-            MessageId = "response-123",
-            Role = MessageRole.Agent,
-            Parts = [new TextPart { Text = "Response to task" }]
+            Message = new Message
+            {
+                MessageId = "response-123",
+                Role = Role.Agent,
+                Parts = [new Part { Text = "Response to task" }]
+            }
         };
 
         var session = (A2AAgentSession)await this._agent.CreateSessionAsync();
@@ -604,7 +630,7 @@ public sealed class A2AAgentTests : IDisposable
         }
 
         // Assert
-        var message = this._handler.CapturedMessageSendParams?.Message;
+        var message = this._handler.CapturedSendMessageRequest?.Message;
         Assert.Null(message?.TaskId);
         Assert.NotNull(message?.ReferenceTaskIds);
         Assert.Contains("task-123", message.ReferenceTaskIds);
@@ -614,12 +640,12 @@ public sealed class A2AAgentTests : IDisposable
     public async Task RunStreamingAsync_WithAgentTask_UpdatesSessionTaskIdAsync()
     {
         // Arrange
-        this._handler.StreamingResponseToReturn = new AgentTask
+        this._handler.StreamingResponseToReturn = new StreamResponse { Task = new AgentTask
         {
             Id = "task-456",
             ContextId = "context-789",
             Status = new() { State = TaskState.Submitted }
-        };
+        } };
 
         var session = await this._agent.CreateSessionAsync();
 
@@ -642,15 +668,18 @@ public sealed class A2AAgentTests : IDisposable
         const string ContextId = "ctx-456";
         const string MessageText = "Hello from agent!";
 
-        this._handler.StreamingResponseToReturn = new AgentMessage
+        this._handler.StreamingResponseToReturn = new StreamResponse
         {
-            MessageId = MessageId,
-            Role = MessageRole.Agent,
-            ContextId = ContextId,
-            Parts =
-            [
-                new TextPart { Text = MessageText }
-            ]
+            Message = new Message
+            {
+                MessageId = MessageId,
+                Role = Role.Agent,
+                ContextId = ContextId,
+                Parts =
+                [
+                    new Part { Text = MessageText }
+                ]
+            }
         };
 
         // Act
@@ -670,8 +699,8 @@ public sealed class A2AAgentTests : IDisposable
         Assert.Equal(this._agent.Id, update0.AgentId);
         Assert.Equal(MessageText, update0.Text);
         Assert.Equal(ChatFinishReason.Stop, update0.FinishReason);
-        Assert.IsType<AgentMessage>(update0.RawRepresentation);
-        Assert.Equal(MessageId, ((AgentMessage)update0.RawRepresentation!).MessageId);
+        Assert.IsType<Message>(update0.RawRepresentation);
+        Assert.Equal(MessageId, ((Message)update0.RawRepresentation!).MessageId);
     }
 
     [Fact]
@@ -681,7 +710,7 @@ public sealed class A2AAgentTests : IDisposable
         const string TaskId = "task-789";
         const string ContextId = "ctx-012";
 
-        this._handler.StreamingResponseToReturn = new AgentTask
+        this._handler.StreamingResponseToReturn = new StreamResponse { Task = new AgentTask
         {
             Id = TaskId,
             ContextId = ContextId,
@@ -690,10 +719,10 @@ public sealed class A2AAgentTests : IDisposable
                 new()
                 {
                     ArtifactId = "art-123",
-                    Parts = [new TextPart { Text = "Task artifact content" }]
+                    Parts = [new Part { Text = "Task artifact content" }]
                 }
             ]
-        };
+        } };
 
         var session = await this._agent.CreateSessionAsync();
 
@@ -728,12 +757,12 @@ public sealed class A2AAgentTests : IDisposable
         const string TaskId = "task-status-123";
         const string ContextId = "ctx-status-456";
 
-        this._handler.StreamingResponseToReturn = new TaskStatusUpdateEvent
+        this._handler.StreamingResponseToReturn = new StreamResponse { StatusUpdate = new TaskStatusUpdateEvent
         {
             TaskId = TaskId,
             ContextId = ContextId,
             Status = new() { State = TaskState.Working }
-        };
+        } };
 
         var session = await this._agent.CreateSessionAsync();
 
@@ -768,16 +797,16 @@ public sealed class A2AAgentTests : IDisposable
         const string ContextId = "ctx-artifact-456";
         const string ArtifactContent = "Task artifact data";
 
-        this._handler.StreamingResponseToReturn = new TaskArtifactUpdateEvent
+        this._handler.StreamingResponseToReturn = new StreamResponse { ArtifactUpdate = new TaskArtifactUpdateEvent
         {
             TaskId = TaskId,
             ContextId = ContextId,
             Artifact = new()
             {
                 ArtifactId = "artifact-789",
-                Parts = [new TextPart { Text = ArtifactContent }]
+                Parts = [new Part { Text = ArtifactContent }]
             }
-        };
+        } };
 
         var session = await this._agent.CreateSessionAsync();
 
@@ -848,15 +877,18 @@ public sealed class A2AAgentTests : IDisposable
     public async Task RunAsync_WithAgentMessageResponseMetadata_ReturnsMetadataAsAdditionalPropertiesAsync()
     {
         // Arrange
-        this._handler.ResponseToReturn = new AgentMessage
+        this._handler.ResponseToReturn = new SendMessageResponse
         {
-            MessageId = "response-123",
-            Role = MessageRole.Agent,
-            Parts = [new TextPart { Text = "Response with metadata" }],
-            Metadata = new Dictionary<string, JsonElement>
+            Message = new Message
             {
-                { "responseKey1", JsonSerializer.SerializeToElement("responseValue1") },
-                { "responseCount", JsonSerializer.SerializeToElement(99) }
+                MessageId = "response-123",
+                Role = Role.Agent,
+                Parts = [new Part { Text = "Response with metadata" }],
+                Metadata = new Dictionary<string, JsonElement>
+                {
+                    { "responseKey1", JsonSerializer.SerializeToElement("responseValue1") },
+                    { "responseCount", JsonSerializer.SerializeToElement(99) }
+                }
             }
         };
 
@@ -877,14 +909,17 @@ public sealed class A2AAgentTests : IDisposable
     }
 
     [Fact]
-    public async Task RunAsync_WithAdditionalProperties_PropagatesThemAsMetadataToMessageSendParamsAsync()
+    public async Task RunAsync_WithAdditionalProperties_PropagatesThemAsMetadataToSendMessageRequestAsync()
     {
         // Arrange
-        this._handler.ResponseToReturn = new AgentMessage
+        this._handler.ResponseToReturn = new SendMessageResponse
         {
-            MessageId = "response-123",
-            Role = MessageRole.Agent,
-            Parts = [new TextPart { Text = "Response" }]
+            Message = new Message
+            {
+                MessageId = "response-123",
+                Role = Role.Agent,
+                Parts = [new Part { Text = "Response" }]
+            }
         };
 
         var inputMessages = new List<ChatMessage>
@@ -906,22 +941,25 @@ public sealed class A2AAgentTests : IDisposable
         await this._agent.RunAsync(inputMessages, null, options);
 
         // Assert
-        Assert.NotNull(this._handler.CapturedMessageSendParams);
-        Assert.NotNull(this._handler.CapturedMessageSendParams.Metadata);
-        Assert.Equal("value1", this._handler.CapturedMessageSendParams.Metadata["key1"].GetString());
-        Assert.Equal(42, this._handler.CapturedMessageSendParams.Metadata["key2"].GetInt32());
-        Assert.True(this._handler.CapturedMessageSendParams.Metadata["key3"].GetBoolean());
+        Assert.NotNull(this._handler.CapturedSendMessageRequest);
+        Assert.NotNull(this._handler.CapturedSendMessageRequest.Metadata);
+        Assert.Equal("value1", this._handler.CapturedSendMessageRequest.Metadata["key1"].GetString());
+        Assert.Equal(42, this._handler.CapturedSendMessageRequest.Metadata["key2"].GetInt32());
+        Assert.True(this._handler.CapturedSendMessageRequest.Metadata["key3"].GetBoolean());
     }
 
     [Fact]
     public async Task RunAsync_WithNullAdditionalProperties_DoesNotSetMetadataAsync()
     {
         // Arrange
-        this._handler.ResponseToReturn = new AgentMessage
+        this._handler.ResponseToReturn = new SendMessageResponse
         {
-            MessageId = "response-123",
-            Role = MessageRole.Agent,
-            Parts = [new TextPart { Text = "Response" }]
+            Message = new Message
+            {
+                MessageId = "response-123",
+                Role = Role.Agent,
+                Parts = [new Part { Text = "Response" }]
+            }
         };
 
         var inputMessages = new List<ChatMessage>
@@ -938,19 +976,22 @@ public sealed class A2AAgentTests : IDisposable
         await this._agent.RunAsync(inputMessages, null, options);
 
         // Assert
-        Assert.NotNull(this._handler.CapturedMessageSendParams);
-        Assert.Null(this._handler.CapturedMessageSendParams.Metadata);
+        Assert.NotNull(this._handler.CapturedSendMessageRequest);
+        Assert.Null(this._handler.CapturedSendMessageRequest.Metadata);
     }
 
     [Fact]
-    public async Task RunStreamingAsync_WithAdditionalProperties_PropagatesThemAsMetadataToMessageSendParamsAsync()
+    public async Task RunStreamingAsync_WithAdditionalProperties_PropagatesThemAsMetadataToSendMessageRequestAsync()
     {
         // Arrange
-        this._handler.StreamingResponseToReturn = new AgentMessage
+        this._handler.StreamingResponseToReturn = new StreamResponse
         {
-            MessageId = "stream-123",
-            Role = MessageRole.Agent,
-            Parts = [new TextPart { Text = "Streaming response" }]
+            Message = new Message
+            {
+                MessageId = "stream-123",
+                Role = Role.Agent,
+                Parts = [new Part { Text = "Streaming response" }]
+            }
         };
 
         var inputMessages = new List<ChatMessage>
@@ -974,22 +1015,25 @@ public sealed class A2AAgentTests : IDisposable
         }
 
         // Assert
-        Assert.NotNull(this._handler.CapturedMessageSendParams);
-        Assert.NotNull(this._handler.CapturedMessageSendParams.Metadata);
-        Assert.Equal("streamValue1", this._handler.CapturedMessageSendParams.Metadata["streamKey1"].GetString());
-        Assert.Equal(100, this._handler.CapturedMessageSendParams.Metadata["streamKey2"].GetInt32());
-        Assert.False(this._handler.CapturedMessageSendParams.Metadata["streamKey3"].GetBoolean());
+        Assert.NotNull(this._handler.CapturedSendMessageRequest);
+        Assert.NotNull(this._handler.CapturedSendMessageRequest.Metadata);
+        Assert.Equal("streamValue1", this._handler.CapturedSendMessageRequest.Metadata["streamKey1"].GetString());
+        Assert.Equal(100, this._handler.CapturedSendMessageRequest.Metadata["streamKey2"].GetInt32());
+        Assert.False(this._handler.CapturedSendMessageRequest.Metadata["streamKey3"].GetBoolean());
     }
 
     [Fact]
     public async Task RunStreamingAsync_WithNullAdditionalProperties_DoesNotSetMetadataAsync()
     {
         // Arrange
-        this._handler.StreamingResponseToReturn = new AgentMessage
+        this._handler.StreamingResponseToReturn = new StreamResponse
         {
-            MessageId = "stream-123",
-            Role = MessageRole.Agent,
-            Parts = [new TextPart { Text = "Streaming response" }]
+            Message = new Message
+            {
+                MessageId = "stream-123",
+                Role = Role.Agent,
+                Parts = [new Part { Text = "Streaming response" }]
+            }
         };
 
         var inputMessages = new List<ChatMessage>
@@ -1008,8 +1052,8 @@ public sealed class A2AAgentTests : IDisposable
         }
 
         // Assert
-        Assert.NotNull(this._handler.CapturedMessageSendParams);
-        Assert.Null(this._handler.CapturedMessageSendParams.Metadata);
+        Assert.NotNull(this._handler.CapturedSendMessageRequest);
+        Assert.Null(this._handler.CapturedSendMessageRequest.Metadata);
     }
 
     [Fact]
@@ -1256,6 +1300,7 @@ public sealed class A2AAgentTests : IDisposable
 
     public void Dispose()
     {
+        this._a2aClient.Dispose();
         this._handler.Dispose();
         this._httpClient.Dispose();
     }
@@ -1269,13 +1314,15 @@ public sealed class A2AAgentTests : IDisposable
     {
         public JsonRpcRequest? CapturedJsonRpcRequest { get; set; }
 
-        public MessageSendParams? CapturedMessageSendParams { get; set; }
+        public SendMessageRequest? CapturedSendMessageRequest { get; set; }
 
-        public TaskIdParams? CapturedTaskIdParams { get; set; }
+        public GetTaskRequest? CapturedGetTaskRequest { get; set; }
 
-        public A2AEvent? ResponseToReturn { get; set; }
+        public SendMessageResponse? ResponseToReturn { get; set; }
 
-        public A2AEvent? StreamingResponseToReturn { get; set; }
+        public AgentTask? AgentTaskToReturn { get; set; }
+
+        public StreamResponse? StreamingResponseToReturn { get; set; }
 
         protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
         {
@@ -1288,20 +1335,39 @@ public sealed class A2AAgentTests : IDisposable
 
             try
             {
-                this.CapturedMessageSendParams = this.CapturedJsonRpcRequest?.Params?.Deserialize<MessageSendParams>();
+                this.CapturedSendMessageRequest = this.CapturedJsonRpcRequest?.Params?.Deserialize<SendMessageRequest>(A2AJsonUtilities.DefaultOptions);
             }
-            catch { /* Ignore deserialization errors for non-MessageSendParams requests */ }
+            catch { /* Ignore deserialization errors for non-SendMessageRequest requests */ }
 
             try
             {
-                this.CapturedTaskIdParams = this.CapturedJsonRpcRequest?.Params?.Deserialize<TaskIdParams>();
+                this.CapturedGetTaskRequest = this.CapturedJsonRpcRequest?.Params?.Deserialize<GetTaskRequest>(A2AJsonUtilities.DefaultOptions);
             }
-            catch { /* Ignore deserialization errors for non-TaskIdParams requests */ }
+            catch { /* Ignore deserialization errors for non-GetTaskRequest requests */ }
+
+            // Return the pre-configured AgentTask response (for tasks/get)
+            if (this.AgentTaskToReturn is not null && this.CapturedJsonRpcRequest?.Method == "GetTask")
+            {
+                var jsonRpcResponse = new JsonRpcResponse
+                {
+                    Id = "response-id",
+                    Result = JsonSerializer.SerializeToNode(this.AgentTaskToReturn, A2AJsonUtilities.DefaultOptions)
+                };
+
+                return new HttpResponseMessage(HttpStatusCode.OK)
+                {
+                    Content = new StringContent(JsonSerializer.Serialize(jsonRpcResponse), Encoding.UTF8, "application/json")
+                };
+            }
 
             // Return the pre-configured non-streaming response
             if (this.ResponseToReturn is not null)
             {
-                var jsonRpcResponse = JsonRpcResponse.CreateJsonRpcResponse("response-id", this.ResponseToReturn);
+                var jsonRpcResponse = new JsonRpcResponse
+                {
+                    Id = "response-id",
+                    Result = JsonSerializer.SerializeToNode(this.ResponseToReturn, A2AJsonUtilities.DefaultOptions)
+                };
 
                 return new HttpResponseMessage(HttpStatusCode.OK)
                 {
@@ -1311,22 +1377,18 @@ public sealed class A2AAgentTests : IDisposable
             // Return the pre-configured streaming response
             else if (this.StreamingResponseToReturn is not null)
             {
+                var jsonRpcResponse = new JsonRpcResponse
+                {
+                    Id = "response-id",
+                    Result = JsonSerializer.SerializeToNode(this.StreamingResponseToReturn, A2AJsonUtilities.DefaultOptions)
+                };
+
                 var stream = new MemoryStream();
-
-                await SseFormatter.WriteAsync(
-                    new SseItem<JsonRpcResponse>[]
-                    {
-                        new(JsonRpcResponse.CreateJsonRpcResponse("response-id", this.StreamingResponseToReturn!))
-                    }.ToAsyncEnumerable(),
-                    stream,
-                    (item, writer) =>
-                    {
-                        using Utf8JsonWriter json = new(writer, new() { Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping });
-                        JsonSerializer.Serialize(json, item.Data);
-                    },
-                    cancellationToken
-                );
-
+                var writer = new StreamWriter(stream);
+                await writer.WriteAsync($"data: {JsonSerializer.Serialize(jsonRpcResponse, A2AJsonUtilities.DefaultOptions)}\n\n");
+#pragma warning disable CA2016 // Forward the 'CancellationToken' parameter to methods; overload doesn't exist downlevel
+                await writer.FlushAsync();
+#pragma warning restore CA2016
                 stream.Position = 0;
 
                 return new HttpResponseMessage(HttpStatusCode.OK)
@@ -1339,7 +1401,11 @@ public sealed class A2AAgentTests : IDisposable
             }
             else
             {
-                var jsonRpcResponse = JsonRpcResponse.CreateJsonRpcResponse<A2AEvent>("response-id", new AgentMessage());
+                var jsonRpcResponse = new JsonRpcResponse
+                {
+                    Id = "response-id",
+                    Result = JsonSerializer.SerializeToNode(new SendMessageResponse { Message = new Message() }, A2AJsonUtilities.DefaultOptions)
+                };
 
                 return new HttpResponseMessage(HttpStatusCode.OK)
                 {
