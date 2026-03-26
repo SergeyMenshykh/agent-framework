@@ -1,0 +1,249 @@
+﻿// Copyright (c) Microsoft. All rights reserved.
+
+using System;
+using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
+using Microsoft.Extensions.Logging;
+using Microsoft.Shared.DiagnosticIds;
+using Microsoft.Shared.Diagnostics;
+
+namespace Microsoft.Agents.AI;
+
+/// <summary>
+/// Fluent builder for constructing an <see cref="AgentSkillsProvider"/> backed by a composite source.
+/// </summary>
+/// <remarks>
+/// <para>
+/// Use this builder to combine multiple heterogeneous skill sources into a single provider:
+/// </para>
+/// <code>
+/// var provider = new AgentSkillsProviderBuilder()
+///     .UseFileSkills("/path/to/skills")
+///     .UseInlineSkills(myInlineSkill1, myInlineSkill2)
+///     .UseClassSkills(new PdfFormatterSkill())
+///     .Build();
+/// </code>
+/// </remarks>
+[Experimental(DiagnosticIds.Experiments.AgentsAIExperiments)]
+public sealed class AgentSkillsProviderBuilder
+{
+    private readonly List<Func<AgentFileSkillScriptRunner?, ILoggerFactory?, AgentSkillsSource>> _sourceFactories = [];
+    private AgentSkillsProviderOptions? _options;
+    private ILoggerFactory? _loggerFactory;
+    private AgentFileSkillScriptRunner? _scriptRunner;
+    private Func<AgentSkill, bool>? _filter;
+
+    /// <summary>
+    /// Adds a file-based skill source that discovers skills from a filesystem directory.
+    /// </summary>
+    /// <param name="skillPath">Path to search for skills.</param>
+    /// <param name="options">Optional options that control skill discovery behavior.</param>
+    /// <returns>This builder instance for chaining.</returns>
+    public AgentSkillsProviderBuilder UseFileSkill(string skillPath, AgentFileSkillsSourceOptions? options = null)
+    {
+        return this.UseFileSkills([skillPath], options);
+    }
+
+    /// <summary>
+    /// Adds a file-based skill source that discovers skills from multiple filesystem directories.
+    /// </summary>
+    /// <param name="skillPaths">Paths to search for skills.</param>
+    /// <param name="options">Optional options that control skill discovery behavior.</param>
+    /// <returns>This builder instance for chaining.</returns>
+    public AgentSkillsProviderBuilder UseFileSkills(IEnumerable<string> skillPaths, AgentFileSkillsSourceOptions? options = null)
+    {
+        this._sourceFactories.Add((builderScriptRunner, loggerFactory) =>
+        {
+            var resolvedRunner = builderScriptRunner
+                ?? throw new InvalidOperationException($"File-based skill sources require a script runner. Call {nameof(this.UseFileScriptRunner)}.");
+            return new AgentFileSkillsSource(skillPaths, resolvedRunner, options, loggerFactory);
+        });
+        return this;
+    }
+
+    /// <summary>
+    /// Adds a single inline (code-defined) skill.
+    /// </summary>
+    /// <param name="skill">The inline skill to add.</param>
+    /// <returns>This builder instance for chaining.</returns>
+    public AgentSkillsProviderBuilder UseInlineSkill(AgentInlineSkill skill)
+    {
+        return this.UseInlineSkills(skill);
+    }
+
+    /// <summary>
+    /// Adds inline (code-defined) skills.
+    /// </summary>
+    /// <param name="skills">The inline skills to add.</param>
+    /// <returns>This builder instance for chaining.</returns>
+    public AgentSkillsProviderBuilder UseInlineSkills(params AgentInlineSkill[] skills)
+    {
+        var source = new AgentInMemorySkillsSource(skills);
+        this._sourceFactories.Add((_, _) => source);
+        return this;
+    }
+
+    /// <summary>
+    /// Adds inline (code-defined) skills.
+    /// </summary>
+    /// <param name="skills">The inline skills to add.</param>
+    /// <returns>This builder instance for chaining.</returns>
+    public AgentSkillsProviderBuilder UseInlineSkills(IEnumerable<AgentInlineSkill> skills)
+    {
+        var source = new AgentInMemorySkillsSource(skills);
+        this._sourceFactories.Add((_, _) => source);
+        return this;
+    }
+
+    /// <summary>
+    /// Adds a single class-based skill.
+    /// </summary>
+    /// <param name="skill">The class-based skill to add.</param>
+    /// <returns>This builder instance for chaining.</returns>
+    public AgentSkillsProviderBuilder UseClassSkill(AgentClassSkill skill)
+    {
+        return this.UseClassSkills(skill);
+    }
+
+    /// <summary>
+    /// Adds class-based skills.
+    /// </summary>
+    /// <param name="skills">The class-based skills to add.</param>
+    /// <returns>This builder instance for chaining.</returns>
+    public AgentSkillsProviderBuilder UseClassSkills(params AgentClassSkill[] skills)
+    {
+        var source = new AgentInMemorySkillsSource(skills);
+        this._sourceFactories.Add((_, _) => source);
+        return this;
+    }
+
+    /// <summary>
+    /// Adds a custom skill source.
+    /// </summary>
+    /// <param name="source">The custom skill source.</param>
+    /// <returns>This builder instance for chaining.</returns>
+    public AgentSkillsProviderBuilder UseSource(AgentSkillsSource source)
+    {
+        _ = Throw.IfNull(source);
+        this._sourceFactories.Add((_, _) => source);
+        return this;
+    }
+
+    /// <summary>
+    /// Sets a custom system prompt template.
+    /// </summary>
+    /// <param name="promptTemplate">The prompt template with <c>{skills}</c> placeholder for the skills list,
+    /// <c>{resource_instructions}</c> for optional resource instructions,
+    /// and <c>{script_instructions}</c> for optional script instructions.</param>
+    /// <returns>This builder instance for chaining.</returns>
+    public AgentSkillsProviderBuilder UsePromptTemplate(string promptTemplate)
+    {
+        this.EnsureOptions().SkillsInstructionPrompt = promptTemplate;
+        return this;
+    }
+
+    /// <summary>
+    /// Enables or disables the script approval gate.
+    /// </summary>
+    /// <param name="enabled">Whether script execution requires approval.</param>
+    /// <returns>This builder instance for chaining.</returns>
+    public AgentSkillsProviderBuilder UseScriptApproval(bool enabled = true)
+    {
+        this.EnsureOptions().ScriptApproval = enabled;
+        return this;
+    }
+
+    /// <summary>
+    /// Sets the runner for file-based skill scripts.
+    /// </summary>
+    /// <param name="runner">The delegate that runs file-based scripts.</param>
+    /// <returns>This builder instance for chaining.</returns>
+    public AgentSkillsProviderBuilder UseFileScriptRunner(AgentFileSkillScriptRunner runner)
+    {
+        this._scriptRunner = Throw.IfNull(runner);
+        return this;
+    }
+
+    /// <summary>
+    /// Sets the logger factory.
+    /// </summary>
+    /// <param name="loggerFactory">The logger factory.</param>
+    /// <returns>This builder instance for chaining.</returns>
+    public AgentSkillsProviderBuilder UseLoggerFactory(ILoggerFactory loggerFactory)
+    {
+        this._loggerFactory = loggerFactory;
+        return this;
+    }
+
+    /// <summary>
+    /// Sets a filter predicate that controls which skills are included.
+    /// </summary>
+    /// <remarks>
+    /// Skills for which the predicate returns <see langword="true"/> are kept;
+    /// others are excluded. Only one filter is supported; calling this method
+    /// again replaces any previously set filter.
+    /// </remarks>
+    /// <param name="predicate">A predicate that determines which skills to include.</param>
+    /// <returns>This builder instance for chaining.</returns>
+    public AgentSkillsProviderBuilder UseFilter(Func<AgentSkill, bool> predicate)
+    {
+        _ = Throw.IfNull(predicate);
+        this._filter = predicate;
+        return this;
+    }
+
+    /// <summary>
+    /// Configures the <see cref="AgentSkillsProviderOptions"/> using the provided delegate.
+    /// </summary>
+    /// <param name="configure">A delegate to configure the options.</param>
+    /// <returns>This builder instance for chaining.</returns>
+    public AgentSkillsProviderBuilder UseOptions(Action<AgentSkillsProviderOptions> configure)
+    {
+        _ = Throw.IfNull(configure);
+        configure(this.EnsureOptions());
+        return this;
+    }
+
+    /// <summary>
+    /// Builds the <see cref="AgentSkillsProvider"/>.
+    /// </summary>
+    /// <returns>A configured <see cref="AgentSkillsProvider"/>.</returns>
+    public AgentSkillsProvider Build()
+    {
+        var resolvedSources = new List<AgentSkillsSource>(this._sourceFactories.Count);
+        foreach (var factory in this._sourceFactories)
+        {
+            resolvedSources.Add(factory(this._scriptRunner, this._loggerFactory));
+        }
+
+        AgentSkillsSource source;
+        if (resolvedSources.Count == 1)
+        {
+            source = resolvedSources[0];
+        }
+        else
+        {
+            source = new AggregatingAgentSkillsSource(resolvedSources);
+        }
+
+        // Apply user-specified filter, then dedup.
+        if (this._filter != null)
+        {
+            source = new FilteringAgentSkillsSource(source, this._filter, this._loggerFactory);
+        }
+
+        source = new DeduplicatingAgentSkillsSource(source, this._loggerFactory);
+
+        return new AgentSkillsProvider(source, this._options, this._loggerFactory);
+    }
+
+    private AgentSkillsProviderOptions EnsureOptions()
+    {
+        if (this._options == null)
+        {
+            this._options = new AgentSkillsProviderOptions();
+        }
+
+        return this._options;
+    }
+}
