@@ -160,7 +160,7 @@ public sealed class AgentFileSkillsSourceScriptTests : IDisposable
     }
 
     [Fact]
-    public void Constructor_NullExecutor_DoesNotThrow()
+    public void Constructor_NullExecutor_ThrowsArgumentNullException()
     {
         // Arrange & Act & Assert — null runner is allowed when skills have no scripts
         var source = new AgentFileSkillsSource(this._testRoot, null);

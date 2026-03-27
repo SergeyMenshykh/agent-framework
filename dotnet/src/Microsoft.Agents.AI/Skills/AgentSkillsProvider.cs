@@ -77,13 +77,13 @@ public sealed partial class AgentSkillsProvider : AIContextProvider
     /// Duplicate skill names are automatically deduplicated (first occurrence wins).
     /// </summary>
     /// <param name="skillPath">Path to search for skills.</param>
-    /// <param name="scriptRunner">Optional delegate that runs file-based scripts. Required only when skills contain scripts.</param>
+    /// <param name="scriptRunner">The delegate that runs file-based scripts.</param>
     /// <param name="fileOptions">Optional options that control skill discovery behavior.</param>
     /// <param name="options">Optional provider configuration.</param>
     /// <param name="loggerFactory">Optional logger factory.</param>
     public AgentSkillsProvider(
         string skillPath,
-        AgentFileSkillScriptRunner? scriptRunner = null,
+        AgentFileSkillScriptRunner? scriptRunner,
         AgentFileSkillsSourceOptions? fileOptions = null,
         AgentSkillsProviderOptions? options = null,
         ILoggerFactory? loggerFactory = null)
@@ -97,19 +97,83 @@ public sealed partial class AgentSkillsProvider : AIContextProvider
     /// Duplicate skill names are automatically deduplicated (first occurrence wins).
     /// </summary>
     /// <param name="skillPaths">Paths to search for skills.</param>
-    /// <param name="scriptRunner">Optional delegate that runs file-based scripts. Required only when skills contain scripts.</param>
+    /// <param name="scriptRunner">The delegate that runs file-based scripts.</param>
     /// <param name="fileOptions">Optional options that control skill discovery behavior.</param>
     /// <param name="options">Optional provider configuration.</param>
     /// <param name="loggerFactory">Optional logger factory.</param>
     public AgentSkillsProvider(
         IEnumerable<string> skillPaths,
-        AgentFileSkillScriptRunner? scriptRunner = null,
+        AgentFileSkillScriptRunner? scriptRunner,
         AgentFileSkillsSourceOptions? fileOptions = null,
         AgentSkillsProviderOptions? options = null,
         ILoggerFactory? loggerFactory = null)
         : this(
             new DeduplicatingAgentSkillsSource(
-                new AgentFileSkillsSource(skillPaths, scriptRunner, fileOptions, loggerFactory),
+                new AgentFileSkillsSource(skillPaths, Throw.IfNull(scriptRunner), fileOptions, loggerFactory),
+                loggerFactory),
+            options,
+            loggerFactory)
+    {
+    }
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="AgentSkillsProvider"/> class
+    /// with one or more inline (code-defined) skills.
+    /// Duplicate skill names are automatically deduplicated (first occurrence wins).
+    /// </summary>
+    /// <param name="skills">The inline skills to include.</param>
+    public AgentSkillsProvider(params AgentInlineSkill[] skills)
+        : this(skills as IEnumerable<AgentInlineSkill>)
+    {
+    }
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="AgentSkillsProvider"/> class
+    /// with inline (code-defined) skills.
+    /// Duplicate skill names are automatically deduplicated (first occurrence wins).
+    /// </summary>
+    /// <param name="skills">The inline skills to include.</param>
+    /// <param name="options">Optional provider configuration.</param>
+    /// <param name="loggerFactory">Optional logger factory.</param>
+    public AgentSkillsProvider(
+        IEnumerable<AgentInlineSkill> skills,
+        AgentSkillsProviderOptions? options = null,
+        ILoggerFactory? loggerFactory = null)
+        : this(
+            new DeduplicatingAgentSkillsSource(
+                new AgentInMemorySkillsSource(Throw.IfNull(skills)),
+                loggerFactory),
+            options,
+            loggerFactory)
+    {
+    }
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="AgentSkillsProvider"/> class
+    /// with one or more class-based skills.
+    /// Duplicate skill names are automatically deduplicated (first occurrence wins).
+    /// </summary>
+    /// <param name="skills">The class-based skills to include.</param>
+    public AgentSkillsProvider(params AgentClassSkill[] skills)
+        : this(skills as IEnumerable<AgentClassSkill>)
+    {
+    }
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="AgentSkillsProvider"/> class
+    /// with class-based skills.
+    /// Duplicate skill names are automatically deduplicated (first occurrence wins).
+    /// </summary>
+    /// <param name="skills">The class-based skills to include.</param>
+    /// <param name="options">Optional provider configuration.</param>
+    /// <param name="loggerFactory">Optional logger factory.</param>
+    public AgentSkillsProvider(
+        IEnumerable<AgentClassSkill> skills,
+        AgentSkillsProviderOptions? options = null,
+        ILoggerFactory? loggerFactory = null)
+        : this(
+            new DeduplicatingAgentSkillsSource(
+                new AgentInMemorySkillsSource(Throw.IfNull(skills)),
                 loggerFactory),
             options,
             loggerFactory)
@@ -124,7 +188,7 @@ public sealed partial class AgentSkillsProvider : AIContextProvider
     /// <param name="source">The skill source providing skills.</param>
     /// <param name="options">Optional configuration.</param>
     /// <param name="loggerFactory">Optional logger factory.</param>
-    public AgentSkillsProvider(AgentSkillsSource source, AgentSkillsProviderOptions? options = null, ILoggerFactory? loggerFactory = null)
+    internal AgentSkillsProvider(AgentSkillsSource source, AgentSkillsProviderOptions? options = null, ILoggerFactory? loggerFactory = null)
     {
         this._source = Throw.IfNull(source);
         this._options = options;
@@ -141,31 +205,13 @@ public sealed partial class AgentSkillsProvider : AIContextProvider
     {
         if (this._options?.DisableCaching == true)
         {
-            return await this.CreateContextAsync(context, cancellationToken).ConfigureAwait(false);
+            return await this.CreateContextAsync(cancellationToken).ConfigureAwait(false);
         }
 
-        return await this.GetOrCreateContextAsync(context, cancellationToken).ConfigureAwait(false);
+        return await this.GetOrCreateContextAsync(cancellationToken).ConfigureAwait(false);
     }
 
-    private async Task<AIContext> CreateContextAsync(InvokingContext context, CancellationToken cancellationToken)
-    {
-        var skills = await this._source.GetSkillsAsync(cancellationToken).ConfigureAwait(false);
-        if (skills is not { Count: > 0 })
-        {
-            return await base.ProvideAIContextAsync(context, cancellationToken).ConfigureAwait(false);
-        }
-
-        bool hasScripts = skills.Any(s => s.Scripts is { Count: > 0 });
-        bool hasResources = skills.Any(s => s.Resources is { Count: > 0 });
-
-        return new AIContext
-        {
-            Instructions = this.BuildSkillsInstructions(skills, includeScriptInstructions: hasScripts, hasResources),
-            Tools = this.BuildTools(skills, hasScripts, hasResources),
-        };
-    }
-
-    private async Task<AIContext> GetOrCreateContextAsync(InvokingContext context, CancellationToken cancellationToken)
+    private async Task<AIContext> GetOrCreateContextAsync(CancellationToken cancellationToken)
     {
         var tcs = new TaskCompletionSource<AIContext>(TaskCreationOptions.RunContinuationsAsynchronously);
 
@@ -176,7 +222,7 @@ public sealed partial class AgentSkillsProvider : AIContextProvider
 
         try
         {
-            var result = await this.CreateContextAsync(context, cancellationToken).ConfigureAwait(false);
+            var result = await this.CreateContextAsync(cancellationToken).ConfigureAwait(false);
             tcs.SetResult(result);
             return result;
         }
@@ -186,6 +232,24 @@ public sealed partial class AgentSkillsProvider : AIContextProvider
             tcs.TrySetException(ex);
             throw;
         }
+    }
+
+    private async Task<AIContext> CreateContextAsync(CancellationToken cancellationToken)
+    {
+        var skills = await this._source.GetSkillsAsync(cancellationToken).ConfigureAwait(false);
+        if (skills is not { Count: > 0 })
+        {
+            return new AIContext();
+        }
+
+        bool hasScripts = skills.Any(s => s.Scripts is { Count: > 0 });
+        bool hasResources = skills.Any(s => s.Resources is { Count: > 0 });
+
+        return new AIContext
+        {
+            Instructions = this.BuildSkillsInstructions(skills, includeScriptInstructions: hasScripts, hasResources),
+            Tools = this.BuildTools(skills, hasScripts, hasResources),
+        };
     }
 
     private IList<AIFunction> BuildTools(IList<AgentSkill> skills, bool hasScripts, bool hasResources)
@@ -252,7 +316,7 @@ public sealed partial class AgentSkillsProvider : AIContextProvider
 
         return new StringBuilder(promptTemplate)
             .Replace(SkillsPlaceholder, sb.ToString().TrimEnd())
-            .Replace(ResourceInstructionsPlaceholder, resourceInstruction)
+            .Replace(ResourceInstructionsPlaceholder, resourceInstruction.Trim())
             .Replace(ScriptInstructionsPlaceholder, scriptInstruction)
             .ToString();
     }

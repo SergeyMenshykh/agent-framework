@@ -13,9 +13,14 @@ namespace Microsoft.Agents.AI;
 /// Fluent builder for constructing an <see cref="AgentSkillsProvider"/> backed by a composite source.
 /// </summary>
 /// <remarks>
+/// <para>
+/// Use this builder to combine multiple heterogeneous skill sources into a single provider:
+/// </para>
 /// <code>
 /// var provider = new AgentSkillsProviderBuilder()
 ///     .UseFileSkills("/path/to/skills")
+///     .UseInlineSkills(myInlineSkill1, myInlineSkill2)
+///     .UseClassSkills(new PdfFormatterSkill())
 ///     .Build();
 /// </code>
 /// </remarks>
@@ -33,14 +38,10 @@ public sealed class AgentSkillsProviderBuilder
     /// </summary>
     /// <param name="skillPath">Path to search for skills.</param>
     /// <param name="options">Optional options that control skill discovery behavior.</param>
-    /// <param name="scriptRunner">
-    /// Optional runner for file-based scripts. When provided, overrides the builder-level runner
-    /// set via <see cref="UseFileScriptRunner"/>.
-    /// </param>
     /// <returns>This builder instance for chaining.</returns>
     public AgentSkillsProviderBuilder UseFileSkill(string skillPath, AgentFileSkillsSourceOptions? options = null, AgentFileSkillScriptRunner? scriptRunner = null)
     {
-        return this.UseFileSkills([skillPath], options, scriptRunner);
+        return this.UseFileSkills([skillPath], options);
     }
 
     /// <summary>
@@ -62,6 +63,62 @@ public sealed class AgentSkillsProviderBuilder
                 ?? throw new InvalidOperationException($"File-based skill sources require a script runner. Call {nameof(this.UseFileScriptRunner)} or pass a runner to {nameof(this.UseFileSkill)}/{nameof(this.UseFileSkills)}.");
             return new AgentFileSkillsSource(skillPaths, resolvedRunner, options, loggerFactory);
         });
+        return this;
+    }
+
+    /// <summary>
+    /// Adds a single inline (code-defined) skill.
+    /// </summary>
+    /// <param name="skill">The inline skill to add.</param>
+    /// <returns>This builder instance for chaining.</returns>
+    public AgentSkillsProviderBuilder UseInlineSkill(AgentInlineSkill skill)
+    {
+        return this.UseInlineSkills(skill);
+    }
+
+    /// <summary>
+    /// Adds inline (code-defined) skills.
+    /// </summary>
+    /// <param name="skills">The inline skills to add.</param>
+    /// <returns>This builder instance for chaining.</returns>
+    public AgentSkillsProviderBuilder UseInlineSkills(params AgentInlineSkill[] skills)
+    {
+        var source = new AgentInMemorySkillsSource(skills);
+        this._sourceFactories.Add((_, _) => source);
+        return this;
+    }
+
+    /// <summary>
+    /// Adds inline (code-defined) skills.
+    /// </summary>
+    /// <param name="skills">The inline skills to add.</param>
+    /// <returns>This builder instance for chaining.</returns>
+    public AgentSkillsProviderBuilder UseInlineSkills(IEnumerable<AgentInlineSkill> skills)
+    {
+        var source = new AgentInMemorySkillsSource(skills);
+        this._sourceFactories.Add((_, _) => source);
+        return this;
+    }
+
+    /// <summary>
+    /// Adds a single class-based skill.
+    /// </summary>
+    /// <param name="skill">The class-based skill to add.</param>
+    /// <returns>This builder instance for chaining.</returns>
+    public AgentSkillsProviderBuilder UseClassSkill(AgentClassSkill skill)
+    {
+        return this.UseClassSkills(skill);
+    }
+
+    /// <summary>
+    /// Adds class-based skills.
+    /// </summary>
+    /// <param name="skills">The class-based skills to add.</param>
+    /// <returns>This builder instance for chaining.</returns>
+    public AgentSkillsProviderBuilder UseClassSkills(params AgentClassSkill[] skills)
+    {
+        var source = new AgentInMemorySkillsSource(skills);
+        this._sourceFactories.Add((_, _) => source);
         return this;
     }
 
@@ -186,7 +243,7 @@ public sealed class AgentSkillsProviderBuilder
     }
 
     private AgentSkillsProviderOptions GetOrCreateOptions()
-    {
+        {
         return this._options ??= new AgentSkillsProviderOptions();
     }
 }

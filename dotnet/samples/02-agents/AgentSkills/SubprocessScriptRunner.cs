@@ -1,7 +1,7 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 
 // Sample subprocess-based skill script runner.
-// Executes file-based skill scripts as local subprocesses.
+// Runs file-based skill scripts as local subprocesses.
 // This is provided for demonstration purposes only.
 
 using System.Diagnostics;
@@ -9,7 +9,7 @@ using Microsoft.Agents.AI;
 using Microsoft.Extensions.AI;
 
 /// <summary>
-/// Executes file-based skill scripts as local subprocesses.
+/// Runs file-based skill scripts as local subprocesses.
 /// </summary>
 /// <remarks>
 /// This runner uses the script's absolute path, converts the arguments
@@ -80,22 +80,33 @@ internal static class SubprocessScriptRunner
             }
         }
 
-        Process? process = null;
         try
         {
-            process = Process.Start(startInfo);
+            using var process = Process.Start(startInfo);
             if (process is null)
             {
                 return $"Error: Failed to start process for script '{script.Name}'.";
             }
 
-            Task<string> outputTask = process.StandardOutput.ReadToEndAsync(cancellationToken);
-            Task<string> errorTask = process.StandardError.ReadToEndAsync(cancellationToken);
+            using var registration = cancellationToken.Register(() =>
+            {
+                try
+                {
+                    if (!process.HasExited)
+                    {
+                        process.Kill(entireProcessTree: true);
+                    }
+                }
+                catch (InvalidOperationException)
+                {
+                    // Process already exited.
+                }
+            });
+
+            string output = await process.StandardOutput.ReadToEndAsync(cancellationToken).ConfigureAwait(false);
+            string error = await process.StandardError.ReadToEndAsync(cancellationToken).ConfigureAwait(false);
 
             await process.WaitForExitAsync(cancellationToken).ConfigureAwait(false);
-
-            string output = await outputTask.ConfigureAwait(false);
-            string error = await errorTask.ConfigureAwait(false);
 
             if (!string.IsNullOrEmpty(error))
             {
@@ -109,23 +120,13 @@ internal static class SubprocessScriptRunner
 
             return string.IsNullOrEmpty(output) ? "(no output)" : output.Trim();
         }
-        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
-        {
-            // Kill the process on cancellation to avoid leaving orphaned subprocesses.
-            process?.Kill(entireProcessTree: true);
-            throw;
-        }
         catch (OperationCanceledException)
         {
-            throw;
+            return $"Error: Script '{script.Name}' was cancelled.";
         }
         catch (Exception ex)
         {
             return $"Error: Failed to execute script '{script.Name}': {ex.Message}";
-        }
-        finally
-        {
-            process?.Dispose();
         }
     }
 
