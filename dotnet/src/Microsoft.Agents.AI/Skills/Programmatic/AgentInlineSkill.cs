@@ -107,6 +107,7 @@ public sealed class AgentInlineSkill : AgentSkill
     /// <returns>This instance, for chaining.</returns>
     public AgentInlineSkill AddResource(string name, object value, string? description = null)
     {
+        this.ThrowIfDuplicateResource(name);
         (this._resources ??= []).Add(new AgentInlineSkillResource(name, value, description));
         return this;
     }
@@ -125,6 +126,7 @@ public sealed class AgentInlineSkill : AgentSkill
     /// <returns>This instance, for chaining.</returns>
     public AgentInlineSkill AddResource(string name, Delegate method, string? description = null, JsonSerializerOptions? serializerOptions = null)
     {
+        this.ThrowIfDuplicateResource(name);
         (this._resources ??= []).Add(new AgentInlineSkillResource(name, method, description, serializerOptions ?? this._serializerOptions));
         return this;
     }
@@ -143,7 +145,24 @@ public sealed class AgentInlineSkill : AgentSkill
     /// <returns>This instance, for chaining.</returns>
     public AgentInlineSkill AddScript(string name, Delegate method, string? description = null, JsonSerializerOptions? serializerOptions = null)
     {
+        this.ThrowIfDuplicateScript(name);
         (this._scripts ??= []).Add(new AgentInlineSkillScript(name, method, description, serializerOptions ?? this._serializerOptions));
         return this;
+    }
+
+    private void ThrowIfDuplicateResource(string name)
+    {
+        if (this._resources?.Exists(r => r.Name == name) == true)
+        {
+            throw new InvalidOperationException($"Skill '{this.Frontmatter.Name}' already has a resource named '{name}'. Each resource must have a unique name.");
+        }
+    }
+
+    private void ThrowIfDuplicateScript(string name)
+    {
+        if (this._scripts?.Exists(s => s.Name == name) == true)
+        {
+            throw new InvalidOperationException($"Skill '{this.Frontmatter.Name}' already has a script named '{name}'. Each script must have a unique name.");
+        }
     }
 }

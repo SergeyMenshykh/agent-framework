@@ -233,9 +233,15 @@ public abstract class AgentClassSkill<
                 continue;
             }
 
+            var name = attr.Name ?? property.Name;
+            if (resources?.Exists(r => r.Name == name) == true)
+            {
+                throw new InvalidOperationException($"Skill '{this.Frontmatter.Name}' already has a resource named '{name}'. Ensure each [AgentSkillResource] has a unique name.");
+            }
+
             resources ??= [];
             resources.Add(new AgentInlineSkillResource(
-                name: attr.Name ?? property.Name,
+                name: name,
                 method: getter,
                 target: getter.IsStatic ? null : this,
                 description: property.GetCustomAttribute<DescriptionAttribute>()?.Description,
@@ -251,9 +257,15 @@ public abstract class AgentClassSkill<
                 continue;
             }
 
+            var name = attr.Name ?? method.Name;
+            if (resources?.Exists(r => r.Name == name) == true)
+            {
+                throw new InvalidOperationException($"Skill '{this.Frontmatter.Name}' already has a resource named '{name}'. Ensure each [AgentSkillResource] has a unique name.");
+            }
+
             resources ??= [];
             resources.Add(new AgentInlineSkillResource(
-                name: attr.Name ?? method.Name,
+                name: name,
                 method: method,
                 target: method.IsStatic ? null : this,
                 description: method.GetCustomAttribute<DescriptionAttribute>()?.Description,
@@ -275,9 +287,15 @@ public abstract class AgentClassSkill<
                 continue;
             }
 
+            var name = attr.Name ?? method.Name;
+            if (scripts?.Exists(s => s.Name == name) == true)
+            {
+                throw new InvalidOperationException($"Skill '{this.Frontmatter.Name}' already has a script named '{name}'. Ensure each [AgentSkillScript] has a unique name.");
+            }
+
             scripts ??= [];
             scripts.Add(new AgentInlineSkillScript(
-                name: attr.Name ?? method.Name,
+                name: name,
                 method: method,
                 target: method.IsStatic ? null : this,
                 description: method.GetCustomAttribute<DescriptionAttribute>()?.Description,

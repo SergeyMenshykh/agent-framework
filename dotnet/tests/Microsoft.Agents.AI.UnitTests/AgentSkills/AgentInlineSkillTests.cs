@@ -498,4 +498,52 @@ public sealed class AgentInlineSkillTests
         Assert.NotNull(result);
         Assert.Contains("dark", result!.ToString()!);
     }
+
+    [Fact]
+    public void AddResource_DuplicateStaticValue_ThrowsInvalidOperationException()
+    {
+        // Arrange
+        var skill = new AgentInlineSkill("my-skill", "A valid skill.", "Instructions.");
+        skill.AddResource("data", "value1");
+
+        // Act & Assert
+        var ex = Assert.Throws<InvalidOperationException>(() => skill.AddResource("data", "value2"));
+        Assert.Contains("data", ex.Message);
+    }
+
+    [Fact]
+    public void AddResource_DuplicateDelegate_ThrowsInvalidOperationException()
+    {
+        // Arrange
+        var skill = new AgentInlineSkill("my-skill", "A valid skill.", "Instructions.");
+        skill.AddResource("data", () => "value1");
+
+        // Act & Assert
+        var ex = Assert.Throws<InvalidOperationException>(() => skill.AddResource("data", () => "value2"));
+        Assert.Contains("data", ex.Message);
+    }
+
+    [Fact]
+    public void AddResource_DuplicateStaticAndDelegate_ThrowsInvalidOperationException()
+    {
+        // Arrange
+        var skill = new AgentInlineSkill("my-skill", "A valid skill.", "Instructions.");
+        skill.AddResource("data", "value1");
+
+        // Act & Assert
+        var ex = Assert.Throws<InvalidOperationException>(() => skill.AddResource("data", () => "value2"));
+        Assert.Contains("data", ex.Message);
+    }
+
+    [Fact]
+    public void AddScript_Duplicate_ThrowsInvalidOperationException()
+    {
+        // Arrange
+        var skill = new AgentInlineSkill("my-skill", "A valid skill.", "Instructions.");
+        skill.AddScript("run", () => "result1");
+
+        // Act & Assert
+        var ex = Assert.Throws<InvalidOperationException>(() => skill.AddScript("run", () => "result2"));
+        Assert.Contains("run", ex.Message);
+    }
 }
