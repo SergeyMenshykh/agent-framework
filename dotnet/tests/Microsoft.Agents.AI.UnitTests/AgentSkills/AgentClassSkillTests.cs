@@ -890,6 +890,7 @@ public sealed class AgentClassSkillTests
         [AgentSkillScript("do-work")]
         private static string DoWork2(string input) => input + "-suffix";
     }
+#pragma warning restore IDE0051 // Remove unused private members
 
     #endregion
 }
