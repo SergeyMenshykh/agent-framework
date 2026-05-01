@@ -28,12 +28,10 @@ internal static class A2AAIContentExtensions
                 (parts ??= []).Add(part);
             }
 
-#pragma warning disable MEAI001 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
             if (content is TextInputResponseContent textInputResponseContent)
             {
-                (parts ??= []).Add(new TextPart { Text = textInputResponseContent.Response });
+                (parts ??= []).Add(Part.FromText(textInputResponseContent.Response));
             }
-#pragma warning restore MEAI001 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
         }
 
         return parts;

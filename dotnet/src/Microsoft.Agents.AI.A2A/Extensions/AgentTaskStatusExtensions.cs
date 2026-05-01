@@ -9,11 +9,11 @@ using Microsoft.Shared.Diagnostics;
 namespace A2A;
 
 /// <summary>
-/// Extension methods for the <see cref="AgentTaskStatus"/> class.
+/// Extension methods for the <see cref="TaskStatus"/> class.
 /// </summary>
 internal static class AgentTaskStatusExtensions
 {
-    internal static IList<AIContent>? GetUserInputRequests(this AgentTaskStatus status)
+    internal static IList<AIContent>? GetUserInputRequests(this TaskStatus status)
     {
         _ = Throw.IfNull(status);
 
@@ -26,9 +26,9 @@ internal static class AgentTaskStatusExtensions
 
         foreach (var part in status.Message.Parts)
         {
-            if (part is TextPart textPart)
+            if (part.ContentCase is PartContentCase.Text)
             {
-                (contents ??= []).Add(new TextInputRequestContent(Guid.NewGuid().ToString(), textPart.Text)
+                (contents ??= []).Add(new TextInputRequestContent(Guid.NewGuid().ToString(), part.Text!)
                 {
                     RawRepresentation = part,
                     AdditionalProperties = part.Metadata.ToAdditionalProperties(),
