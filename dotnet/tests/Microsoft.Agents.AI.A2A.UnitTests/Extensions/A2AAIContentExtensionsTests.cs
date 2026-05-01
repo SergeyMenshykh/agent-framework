@@ -82,6 +82,110 @@ public sealed class A2AAIContentExtensionsTests
         Assert.Equal("Second text", result[2].Text);
     }
 
+    [Fact]
+    public void ToA2AParts_WithTextInputResponseContent_ReturnsTextPartWithResponse()
+    {
+        // Arrange
+        var contents = new List<AIContent>
+        {
+            new TextInputResponseContent("req-1", "User input response")
+        };
+
+        // Act
+        var result = contents.ToParts();
+
+        // Assert
+        Assert.NotNull(result);
+        Assert.Single(result);
+
+        var textPart = Assert.IsType<TextPart>(result[0]);
+        Assert.Equal("User input response", textPart.Text);
+    }
+
+    [Fact]
+    public void ToA2AParts_WithTextContentAndTextInputResponseContent_ReturnsMultipleParts()
+    {
+        // Arrange
+        var contents = new List<AIContent>
+        {
+            new TextContent("Regular text"),
+            new TextInputResponseContent("req-1", "User input response")
+        };
+
+        // Act
+        var result = contents.ToParts();
+
+        // Assert
+        Assert.NotNull(result);
+        Assert.Equal(2, result.Count);
+
+        var firstTextPart = Assert.IsType<TextPart>(result[0]);
+        Assert.Equal("Regular text", firstTextPart.Text);
+
+        var secondTextPart = Assert.IsType<TextPart>(result[1]);
+        Assert.Equal("User input response", secondTextPart.Text);
+    }
+
+    [Fact]
+    public void ToA2AParts_WithMultipleTextInputResponseContents_ReturnsMultipleTextParts()
+    {
+        // Arrange
+        var contents = new List<AIContent>
+        {
+            new TextInputResponseContent("req-1", "First response"),
+            new TextInputResponseContent("req-2", "Second response"),
+            new TextInputResponseContent("req-3", "Third response")
+        };
+
+        // Act
+        var result = contents.ToParts();
+
+        // Assert
+        Assert.NotNull(result);
+        Assert.Equal(3, result.Count);
+
+        var firstPart = Assert.IsType<TextPart>(result[0]);
+        Assert.Equal("First response", firstPart.Text);
+
+        var secondPart = Assert.IsType<TextPart>(result[1]);
+        Assert.Equal("Second response", secondPart.Text);
+
+        var thirdPart = Assert.IsType<TextPart>(result[2]);
+        Assert.Equal("Third response", thirdPart.Text);
+    }
+
+    [Fact]
+    public void ToA2AParts_WithMixedContentAndTextInputResponseContent_ReturnsCorrectOrder()
+    {
+        // Arrange
+        var contents = new List<AIContent>
+        {
+            new TextContent("Start"),
+            new TextInputResponseContent("req-1", "Response"),
+            new UriContent("https://example.com/file.txt", "file/txt"),
+            new TextInputResponseContent("req-2", "Another response")
+        };
+
+        // Act
+        var result = contents.ToParts();
+
+        // Assert
+        Assert.NotNull(result);
+        Assert.Equal(4, result.Count);
+
+        var firstPart = Assert.IsType<TextPart>(result[0]);
+        Assert.Equal("Start", firstPart.Text);
+
+        var secondPart = Assert.IsType<TextPart>(result[1]);
+        Assert.Equal("Response", secondPart.Text);
+
+        var thirdPart = Assert.IsType<FilePart>(result[2]);
+        Assert.Equal("https://example.com/file.txt", thirdPart.File.Uri?.ToString());
+
+        var fourthPart = Assert.IsType<TextPart>(result[3]);
+        Assert.Equal("Another response", fourthPart.Text);
+    }
+
     // Mock class for testing unsupported scenarios
     private sealed class MockAIContent : AIContent;
 }

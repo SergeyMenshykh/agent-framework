@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 
 using System.Collections.Generic;
+using System.Linq;
 using Microsoft.Extensions.AI;
 using Microsoft.Shared.Diagnostics;
 
@@ -25,6 +26,15 @@ internal static class A2AAgentTaskExtensions
             }
         }
 
+        if (agentTask.Status.GetUserInputRequests() is { } userInputRequests)
+        {
+            (messages ??= []).Add(new(ChatRole.Assistant, userInputRequests)
+            {
+                Role = ChatRole.Assistant,
+                RawRepresentation = agentTask.Status,
+            });
+        }
+
         return messages;
     }
 
@@ -42,6 +52,14 @@ internal static class A2AAgentTaskExtensions
             }
         }
 
+        if (agentTask.Status.GetUserInputRequests() is { } userInputRequests)
+        {
+            (messages ??= []).Add(new(ChatRole.Assistant, userInputRequests)
+            {
+                Role = ChatRole.Assistant,
+                RawRepresentation = agentTask.Status,
+            });
+        }
         return aiContents;
     }
 }
