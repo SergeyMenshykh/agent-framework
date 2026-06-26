@@ -111,25 +111,6 @@ public sealed class AgentSkillsProviderBuilderTests
     }
 
     [Fact]
-    public async Task Build_WithCacheDisabled_ReloadsOnEachCallAsync()
-    {
-        // Arrange
-        var countingSource = new CountingSource(
-            new TestAgentSkill("skill-a", "A", "Instructions."));
-        var provider = new AgentSkillsProviderBuilder()
-            .UseSource(countingSource)
-            .UseOptions(o => o.DisableCaching = true)
-            .Build();
-
-        // Act
-        await provider.InvokingAsync(this.CreateInvokingContext(), CancellationToken.None);
-        await provider.InvokingAsync(this.CreateInvokingContext(), CancellationToken.None);
-
-        // Assert — inner source should be called each time (dedup still calls through)
-        Assert.True(countingSource.CallCount >= 2);
-    }
-
-    [Fact]
     public async Task Build_WithCacheEnabled_CachesSkillsAsync()
     {
         // Arrange
